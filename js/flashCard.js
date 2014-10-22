@@ -1,6 +1,7 @@
 // Global variables
 var fc_stack; // List of flashcard stacks
 var fc_clickedCard // Card mouse is currently clicking
+var fc_SWIPE_DISTANCE = 45 // Min swipe distance required to flip a card
 
 // Direction enum
 var DIRECTION = {LEFT: 0, UP: 1, RIGHT: 2, DOWN: 3};
@@ -10,17 +11,24 @@ var DIRECTION = {LEFT: 0, UP: 1, RIGHT: 2, DOWN: 3};
  *	Framework
  */
 
+// Return direction of cursor/touch movement
 function swipeDirection(startX, startY, endX, endY) {
-	if (Math.abs(startX - endX) > Math.abs(startY - endY))
+	if (Math.abs(startX - endX) > Math.abs(startY - endY)) {
 		return (startX > endX) ? DIRECTION.LEFT : DIRECTION.RIGHT;
-	else
+	}
+	else {
 		return (startY > endY) ? DIRECTION.UP: DIRECTION.DOWN;
+	}
+}
+
+// FlashCard Class
+fc_FlashCard = function(ff, bf) {
+	this.frontFunction = ff;
+	this.backFunction = bf;
 }
 
 // Stack class
-var fc_Stack = function(container) {
-	// Record parent
-	this.container = container;
+var fc_Stack = function(stack) {
 
 	// Set front and back of flashcard
 	this.front = document.createElement('canvas');
@@ -34,25 +42,32 @@ var fc_Stack = function(container) {
 	this.card = document.createElement('div');
 	with (this.card) {
 		classList.add('fc_card')
-		dataset.stackId = container.getAttribute('id');
+		dataset.stackId = stack.getAttribute('id');
 		appendChild(this.front);
 		appendChild(this.back);
 	}
 
 	// Append to parent
-	container.appendChild(this.card);
+	var margin = document.createElement('div');
+	margin.appendChild(this.card);
+	this.container = margin;
+	stack.appendChild(margin);
 
-	this.cur == 0;
+	this.cur == -1;
+	this.fc_card = []; // Empty stack of cards
+
 	this.resetTouchEvent();
 }
-// Set draw function for front of flashcard
-fc_Stack.prototype.setFrontFunction = function(ff) {
-	this.frontFunction = ff;
+// Add card to stack
+fc_Stack.prototype.push = function(ff, bf) {
+	this.fc_card.push(new fc_flashcard(ff, bf));
 }
-// Set draw function for back of flashcard
-fc_Stack.prototype.setBackFunction = function(fb) {
-	this.backFunction = fb;
+// Draw current card
+fc_Stack.prototype.draw = function() {
+	this.fc_card[cur].frontFunction(this.front.getContext('2d'));
+	this.fc_card[cur].backFunction(this.back.getContext('2d'));
 }
+
 // Touch Reset
 fc_Stack.prototype.resetTouchEvent = function() {
 	this.touchX = null;
@@ -76,7 +91,7 @@ fc_Stack.prototype.touchend = function(e) {
 		var endY = e.changedTouches[0].pageY;
 
 		// If swipe length is long enough
-		if (Math.abs(endX - this.touchX) > 50 || Math.abs(endY - this.touchY) > 50) {
+		if (Math.abs(endX - this.touchX) > fc_SWIPE_DISTANCE || Math.abs(endY - this.touchY) > fc_SWIPE_DISTANCE) {
 			e.preventDefault();
 			this.moveCard(swipeDirection(this.touchX, this.touchY, endX, endY));
 		}
@@ -87,18 +102,16 @@ fc_Stack.prototype.touchend = function(e) {
 
 // Resize flashcards while maintaining aspect ratio
 function fc_resize() {
-	var stack = document.getElementsByClassName('fc_stack');
-	
-	for (var i = 0; i < stack.length; i++) {
-		var h = stack[i].clientHeight;
-		var w = stack[i].clientWidth;
+	for (var key in fc_stack) {
+		var h = fc_stack[key].container.clientHeight;
+		var w = fc_stack[key].container.clientWidth;
 		
 		if (h*1.5 > w)
 			h = w/1.5;
 		else
 			w = h*1.5;
 
-		with (fc_stack[stack[i].getAttribute('id')].card.style) {
+		with (fc_stack[key].card.style) {
 			maxHeight = h + 'px';
 			maxWidth = w + 'px';
 		}
@@ -124,7 +137,7 @@ function fc_init() {
 	}
 
 	// Resize flashcards
-	window.addEventListener('resize', fc_resize, false);
+	window.addEventListener('resize', fc_resize);
 	fc_resize();
 
 	// If 3d animations are supported
@@ -138,6 +151,7 @@ function fc_init() {
 			this.degreesFlipped += direction === DIRECTION.LEFT ? -180:180;
 			this.alterRotation(this.degreesFlipped);
 		} 
+
 		fc_Stack.prototype.moveCard = function(direction) {
 			console.log(direction);
 			switch (direction) {
@@ -146,21 +160,20 @@ function fc_init() {
 					this.flipCard(direction);
 					break;
 				case DIRECTION.UP:
-					//this.card.classList.add('moveUp');
-					var t1 = setTimeout(this.showNextCard, 250);
-					//var t2 = setTimeout(function() {this.card.classList.remove('moveUp');}, 500);
+					var cur = this.card;
+					this.card.classList.add('fc_moveUp');
+					var t1 = setTimeout(cur.showNextCard, 250);
+					var t2 = setTimeout(function() {cur.classList.remove('fc_moveUp');}, 500);
 					break;
 				case DIRECTION.DOWN:
-					//this.card.classList.add('moveDown');
-					var t1 = setTimeout(this.showPrevCard, 250);
-					//var t2 = setTimeout(function() {this.card.classList.remove('moveDown');}, 500);
+					var cur = this.card;
+					this.card.classList.add('fc_moveDown');
+					var t1 = setTimeout(cur.showPrevCard, 250);
+					var t2 = setTimeout(function() {cur.classList.remove('fc_moveDown');}, 500);
 					break;
 			}
 		}
-	}
 
-	// If touchscreen
-	if (canBeSwiped) {
 		// TouchMove
 		fc_Stack.prototype.touchmove = function(e) {
 			if (this.touchX != null && this.touchY != null) {
@@ -168,24 +181,48 @@ function fc_init() {
 
 				var curX = e.touches[0].pageX;
 				var curY = e.touches[0].pageY;
-				var swipeDir = swipeDirection(curX, curY);
 
-				// If tilt direction has changed
-				if (this.tiltDirection != swipeDir) {
-					var distX = Math.abs(curX - this.touchX);
+				var distX = Math.abs(curX - this.touchX);
 
-					// If length of swipe is long enough
-					if (distX > 50)
-						this.tiltDirection = swipeDir;
-						this.alterRotation(
-							this.degreesFlipped + (
-								(swipeDir === DIRECTION.LEFT) ? -15:15
-							)
-						);
-				}
+				// If length of swipe is long enough
+				if (distX > fc_SWIPE_DISTANCE)
+					this.alterRotation(
+						this.degreesFlipped + (
+							(swipeDirection(this.touchX, this.touchY, curX, curY) === DIRECTION.LEFT) ? -15:15
+						)
+					);
+				else
+					this.alterRotation(this.degreesFlipped);
 			}
 		}
 
+		if (canBeSwiped) {
+			for (var key in fc_stack) {
+				// Touchmove
+				fc_stack[key].card.addEventListener('touchmove', function(e) {
+					fc_stack[this.dataset.stackId].touchmove(e);
+				});
+			}
+		}
+		else {
+			for (var key in fc_stack) {
+				// Mousemove
+				fc_stack[key].card.addEventListener('mousemove', function(e) {
+					if (fc_clickedCard) {
+						e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+						fc_clickedCard.touchmove(e);
+					}
+				});
+			}
+		}
+
+		for (var key in fc_stack) {
+			fc_stack[key].degreesFlipped = 3600000;
+		}
+	}
+
+	// If touchscreen
+	if (canBeSwiped) {
 		for (var key in fc_stack) {
 			// Touchstart
 			fc_stack[key].card.addEventListener('touchstart', function(e) {
@@ -196,11 +233,6 @@ function fc_init() {
 			fc_stack[key].card.addEventListener('touchend', function(e) {
 				fc_stack[this.dataset.stackId].touchend(e);
 			});
-
-			// Touchmove
-			fc_stack[key].card.addEventListener('touchmove', function(e) {
-				fc_stack[this.dataset.stackId].touchmove(e);
-			});
 		}
 	}
 	else {
@@ -208,15 +240,14 @@ function fc_init() {
 			// MouseDown
 			fc_stack[key].card.addEventListener('mousedown', function(e) {
 				fc_clickedCard = fc_stack[this.dataset.stackId];
-				e.touches = [{'pageX': e.clientX, 'pageY': e.clientX}];
+				e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
 				fc_clickedCard.touchstart(e);
 			});
 
 			// MouseUp
 			window.addEventListener('mouseup', function(e) {
 				if (fc_clickedCard) {
-					e.changedTouches = [{'pageX': e.clientX, 'pageY': e.clientX}];
-					console.log(e.changedTouches);
+					e.changedTouches = [{'pageX': e.clientX, 'pageY': e.clientY}];
 					fc_clickedCard.touchend(e);
 				}
 				fc_clickedCard = false;

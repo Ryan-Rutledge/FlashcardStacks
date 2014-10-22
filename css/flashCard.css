@@ -1,16 +1,6 @@
-html, body {
-	height: 100%;
-}
-
-body {
+.fc_stack {
 	overflow: hidden;
-	background-color: #AAA;
-	font-family: sans;
-	min-width: 1.4in;
-	margin: 0;
 
-	border-collapse: collapse;
-	text-align: center;
 	perspective: 1000px;
 	-webkit-perspective: 1000px;
 
@@ -22,7 +12,13 @@ body {
 	user-select: none;
 }
 
-#flashCard {
+.fc_stack > div {
+	width: 100%;
+	height: 100%;
+	display: relative;
+}
+
+.fc_card {
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -42,12 +38,7 @@ body {
 	transition: transform 0.5s ease-out;
 }
 
-#flashCard, .side {
-	min-width: 1.4in;
-	min-height: 0.93in;
-}
-
-.side {
+.fc_card > canvas {
 	display: block;
 	width: 100%;
 	height: 100%;
@@ -64,91 +55,41 @@ body {
 	-ms-backface-visibility: hidden;
 }
 
-#backFlashCard {
-	width: 96%;
-	padding: 2%;
-	font-size: 18px;
-
+.fc_card > canvas:nth-child(2) {
+	background-color: blue;
 	transform: rotateY(180deg);
 	-webkit-transform: rotateY(180deg);
 	-moz-transform: rotateY(180deg);
 	-ms-transform: rotateY(180deg);
 }
 
-#backFlashCard h1 { font-size: 2em; }
-#backFlashCard h2 { font-size: 1.5em;
-	background-color: #000;
-	color: #FFF;
-	margin-top: 2%;
-	padding-top: 0.3em;
-	padding-bottom: 0.5em;
-}
-
-#signalIndication {
-	text-indent: 2em;
-	text-align: left;
-}
-
-.moveUp, .moveDown {
+.fc_moveUp, .fc_moveDown {
 	-webkit-animation-timing-function: ease-in-out;
 	animation-timing-function: ease-in-out;
 }
-.moveUp {
-	-webkit-animation: gotoPrevCard 0.5s;
-	animation: gotoPrevCard 0.5s;
+.fc_moveUp {
+	-webkit-animation: fc_gotoPrevCard 0.5s;
+	animation: fc_gotoPrevCard 0.5s;
 }
-.moveDown {
-	-webkit-animation: gotoNextCard 0.5s;
-	animation: gotoNextCard 0.5s;
-}
-
-@-webkit-keyframes gotoPrevCard {
-	50% { -webkit-transform: translate(0, -1000px);}
-	50.01% { -webkit-transform: translate(0, 1000px);}
-}
-@keyframes gotoPrevCard {
-	50% { transform: translate(0, -1000px);}
-	50.01% { transform: translate(0, 1000px);}
+.fc_moveDown {
+	-webkit-animation: fc_gotoNextCard 0.5s;
+	animation: fc_gotoNextCard 0.5s;
 }
 
-@-webkit-keyframes gotoNextCard {
-	50% { -webkit-transform: translate(0, 1000px);}
-	50.01% { -webkit-transform: translate(0, -1000px);}
+@-webkit-keyframes fc_gotoPrevCard {
+	50% { -webkit-transform: translate(0, -500%);}
+	50.01% { -webkit-transform: translate(0, 500%);}
 }
-@keyframes gotoNextCard {
-	50% { transform: translate(0, 1000px);}
-	50.01% { transform: translate(0, -1000px);}
+@keyframes fc_gotoPrevCard {
+	50% { transform: translate(0, -500%);}
+	50.01% { transform: translate(0, 500%);}
 }
 
-@media screen and (max-width: 510px), (max-height: 340px) {
-	#backFlashCard { font-size: 16px; }
+@-webkit-keyframes fc_gotoNextCard {
+	50% { -webkit-transform: translate(0, 500%);}
+	50.01% { -webkit-transform: translate(0, -500%);}
 }
-@media screen and (max-width: 480px), (max-height: 320px) {
-	#backFlashCard { font-size: 15px; }
-}
-@media screen and (max-width: 450px), (max-height: 300px) {
-	#backFlashCard { font-size: 14px; }
-}
-@media screen and (max-width: 420px), (max-height: 280px) {
-	#backFlashCard { font-size: 12px; }
-}
-@media screen and (max-width: 345px), (max-height: 230px) {
-	#backFlashCard { font-size: 11px; }
-	#backFlashCard h1 { font-size: 1.6em; }
-	#backFlashCard h2 { font-size: 1.2em; }
-}
-@media screen and (max-width: 300px), (max-height: 200px) {
-	#backFlashCard { font-size: 8px; }
-}
-@media screen and (max-width: 240px), (max-height: 160px) {
-	#backFlashCard { font-size: 7px; }
-}
-@media screen and (max-width: 210px), (max-height: 140px) {
-	#backFlashCard { font-size: 6px; }
-}
-@media screen and (max-width: 180px), (max-height: 120px) {
-	#backFlashCard { font-size: 5px;
-		width: 100%;
-		padding: 0;
-	}
+@keyframes fc_gotoNextCard {
+	50% { transform: translate(0, 500%);}
+	50.01% { transform: translate(0, -500%);}
 }
