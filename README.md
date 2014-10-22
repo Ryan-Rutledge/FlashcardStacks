@@ -1,7 +1,7 @@
-#nars-flashcards
+#canvas-flashcards
 
 
-Virtual flashcards for railroad signals
+Virtual flashcard JavaScript library
 
 
 ##Synopsis
