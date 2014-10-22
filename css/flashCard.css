@@ -22,9 +22,6 @@ body {
 	user-select: none;
 }
 
-#flashCardContainer tr, #flashCardContainer td { padding: 0; }
-a { background-color: black; }
-
 #flashCard {
 	position: absolute;
 	top: 0;
@@ -40,6 +37,9 @@ a { background-color: black; }
 	transform-style: preserve-3d;
 	-webkit-transform-style: preserve-3d;
 	-ms-transform-style: preserve-3d;
+	
+	transform: rotateY(3600000deg);
+	transition: transform 0.5s ease-out;
 }
 
 #flashCard, .side {

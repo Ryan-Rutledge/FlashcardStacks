@@ -130,3 +130,23 @@ function resizeFlashCard() {
 	fc.style.maxWidth = w + 'px';
 }
 window.addEventListener('resize', resizeFlashCard, false);
+
+function goBackCard() {
+	if (--currentSignal < 0) {
+		if (--currentRule < 0)
+			currentRule = signalArray.length - 1;
+		currentSignal = signalArray[currentRule].length - 1;
+	}
+
+	drawSignal(signalArray[currentRule][currentSignal], ruleArray[currentRule]);
+}
+
+function goNextCard() {
+	if (signalArray[currentRule].length <= ++currentSignal) {
+		if (++currentRule >= signalArray.length)
+			currentRule = 0;
+		currentSignal = 0;
+	}
+
+	drawSignal(signalArray[currentRule][currentSignal], ruleArray[currentRule]);
+}
