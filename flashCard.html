@@ -1,28 +1,37 @@
 <!doctype html>
-<html lang='en'>
+<html lang="en">
 	<head>
-		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
-		<meta name='viewport' content='initial-scale=1.0, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport" content="initial-scale=1.0, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 
 		<title>NARS Flash Cards</title>
 
-		<link href='css/flashCard.css' rel='stylesheet' type='text/css' />
-	</head>
-	<body onload='drawSignal(signalArray[0][0], ruleArray[0]); resizeFlashCard()'>
-		<div id='flashCard'>
-			<canvas id='frontFlashCard' class='side' width='600' height='400'></canvas>
-			<div id='backFlashCard' class='side'>
-				<h1 id='signalRule'></h1>
-				<h2>Name</h2>
-				<p id='signalName'></p>
-				<h2>Indication</h2>
-				<p id='signalIndication'></p>
-			</div>
-		</div>
+		<link href="css/flashCard.css" rel="stylesheet" type="text/css" />
+		<script src="js/flashCard.js" type="text/javascript" defer></script>
 
-		<script src='js/flashCard.js' type='text/javascript' defer></script>
-		<script src='js/flashCardSignals.js' type='text/javascript' defer></script>
-		<script src='js/flashCardAnimations.js' type='text/javascript' defer></script>
+		<style>
+			html, body {height: 100%;}
+
+			body {
+				background-color: #888;
+				font-family: sans;
+				min-width: 1.4in;
+				margin: 0;
+			}
+
+			.fc_stack {
+				height: 48%;
+				width: 48%;
+				margin: 1%;
+				float: left;
+			}
+		</style>
+	</head>
+	<body onload="fc_init()">
+		 <div id="whole" class="fc_stack"></div>
+		 <div id="natural" class="fc_stack"></div>
+		 <div id="integer" class="fc_stack"></div>
+		 <div id="rational" class="fc_stack"></div>
 	</body>
 </html>

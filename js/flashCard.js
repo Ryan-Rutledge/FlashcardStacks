@@ -1,152 +1,226 @@
-var fc = document.getElementById('flashCard');
-var fFc = document.getElementById('frontFlashCard');
-var bFc = document.getElementById('backFlashCard');
+// Global variables
+var fc_stack; // List of flashcard stacks
+var fc_clickedCard // Card mouse is currently clicking
 
-var currentRule = 0;
-var currentSignal = 0;
+// Direction enum
+var DIRECTION = {LEFT: 0, UP: 1, RIGHT: 2, DOWN: 3};
 
-var signRadius = 32;
-var postGap = 30;
-var signalMargin = 0;
 
-var signIsBlinking = true;
-var blinkingSigns = [];
-var blinkEvent = setInterval (function() {
-	for (var i = 0; i < blinkingSigns.length; i++)
-		drawSign(blinkingSigns[i][0], blinkingSigns[i][1], (signIsBlinking ? '#222':blinkingSigns[i][2]), true);
-	signIsBlinking = !signIsBlinking;
-}, 500);
+/*
+ *	Framework
+ */
 
-function drawSign(x, y, color, small) {
-	small = small === true ? 5:0;
-	var context = fFc.getContext('2d');
-
-	context.beginPath();
-	context.arc(x, y, signRadius - small, 0, 2 * Math.PI, false);
-	context.fillStyle = color;
-	context.fill();
-	context.lineWidth = 22 - (small * 2);
-	context.strokeStyle = '#000';
-	context.stroke();
+function swipeDirection(startX, startY, endX, endY) {
+	if (Math.abs(startX - endX) > Math.abs(startY - endY))
+		return (startX > endX) ? DIRECTION.LEFT : DIRECTION.RIGHT;
+	else
+		return (startY > endY) ? DIRECTION.UP: DIRECTION.DOWN;
 }
 
-function drawPost(x) {
-	var context = fFc.getContext('2d');
-	context.beginPath();
-	context.moveTo(x - postGap, signRadius * 12);
-	context.lineTo(x + postGap, signRadius * 12);
-	context.moveTo(x, signRadius * 12);
-	context.lineTo(x, signRadius);
-	context.lineWidth = 5;
-	context.strokeStyle = '#000';
-	context.stroke();
+// Stack class
+var fc_Stack = function(container) {
+	// Record parent
+	this.container = container;
+
+	// Set front and back of flashcard
+	this.front = document.createElement('canvas');
+	this.back = document.createElement('canvas');
+
+	// Set dimensions
+	this.front.height = this.back.height = 400;
+	this.front.width = this.back.width = 600;
+
+	// Set card
+	this.card = document.createElement('div');
+	with (this.card) {
+		classList.add('fc_card')
+		dataset.stackId = container.getAttribute('id');
+		appendChild(this.front);
+		appendChild(this.back);
+	}
+
+	// Append to parent
+	container.appendChild(this.card);
+
+	this.cur == 0;
+	this.resetTouchEvent();
+}
+// Set draw function for front of flashcard
+fc_Stack.prototype.setFrontFunction = function(ff) {
+	this.frontFunction = ff;
+}
+// Set draw function for back of flashcard
+fc_Stack.prototype.setBackFunction = function(fb) {
+	this.backFunction = fb;
+}
+// Touch Reset
+fc_Stack.prototype.resetTouchEvent = function() {
+	this.touchX = null;
+	this.touchY = null;
+	this.tiltDirection = null;
 }
 
-function drawPosts(n) {
-	//fFc.getContext('2d').clearRect(0, 0, fFc.width, fFc.height);
-	fFc.width = fFc.width;
-
-	var signWidth = (signRadius * 2) + postGap;
-	signalMargin = ((fFc.width - (signWidth * n - postGap)) / 2) + signRadius;
-
-	for (var i = 0; i < n; i++)
-		drawPost(signalMargin + (signWidth * i));
+// Touchstart
+fc_Stack.prototype.touchstart = function(e) {
+	this.touchX = e.touches[0].pageX;
+	this.touchY = e.touches[0].pageY;
+	e.preventDefault();
 }
 
-function drawSignal(signal, rule) {
-	blinkingSigns = [];
-	drawPosts(signal.width);
+// TouchEnd
+fc_Stack.prototype.touchend = function(e) {
+	if (this.touchX != null && this.touchY != null) {
+		this.alterRotation(this.degreesFlipped);
 
-	for (var row = 0; row < signal.length; row++)
-		for (var col = 0; col < signal[row].length; col++)
-			if (signal[row][col] != null) {
-			var y = signRadius + postGap + (row * ((signRadius * 2) + postGap));
-			var x = signalMargin + (((signRadius * 2) + postGap) * col);
-			var c = signal[row][col].color;
-			drawSign(x, y, c);
+		var endX = e.changedTouches[0].pageX;
+		var endY = e.changedTouches[0].pageY;
 
-			if (signal[row][col].signIsBlinking)
-				blinkingSigns.push([x, y, c]);
+		// If swipe length is long enough
+		if (Math.abs(endX - this.touchX) > 50 || Math.abs(endY - this.touchY) > 50) {
+			e.preventDefault();
+			this.moveCard(swipeDirection(this.touchX, this.touchY, endX, endY));
+		}
+	}
+
+	this.resetTouchEvent();
+}
+
+// Resize flashcards while maintaining aspect ratio
+function fc_resize() {
+	var stack = document.getElementsByClassName('fc_stack');
+	
+	for (var i = 0; i < stack.length; i++) {
+		var h = stack[i].clientHeight;
+		var w = stack[i].clientWidth;
+		
+		if (h*1.5 > w)
+			h = w/1.5;
+		else
+			w = h*1.5;
+
+		with (fc_stack[stack[i].getAttribute('id')].card.style) {
+			maxHeight = h + 'px';
+			maxWidth = w + 'px';
+		}
+	}
+}
+
+// Setup
+function fc_init() {
+	fc_stack = {};
+
+	// Get layout engine info
+	var LE = 'webkitTransform' in document.body.style ?  'webkit' :'MozTransform' in document.body.style ?  'Moz':'';
+	// Check for flip effect support
+	var canAnimateFlip = ((LE === '' ? 'b':LE + 'B') + 'ackfaceVisibility') in document.body.style;
+	// Check for touch event support
+	var canBeSwiped = 'ontouchstart' in window;
+
+	// Setup Flashcard elements
+	var stack = document.getElementsByClassName('fc_stack');
+	for (var i = 0; i < stack.length; i++) {
+		var tmp_flashcard = new fc_Stack(stack[i]);
+		fc_stack[stack[i].getAttribute('id')] = tmp_flashcard;
+	}
+
+	// Resize flashcards
+	window.addEventListener('resize', fc_resize, false);
+	fc_resize();
+
+	// If 3d animations are supported
+	if (canAnimateFlip) {
+		fc_Stack.prototype.alterRotation = function(degrees) {
+			this.card.style.transform = 'rotateY(' + degrees + 'deg)';
 		}
 
-	if (rule !== undefined) drawRule(rule);
-}
-
-function drawRule(rule) {
-	// Print Rule
-	document.getElementById('signalRule').innerHTML = 'Rule ' + rule.number;
-	
-	// Print Rule
-	document.getElementById('signalName').innerHTML = rule.name;
-
-	// Print Rule
-	document.getElementById('signalIndication').innerHTML = rule.indication;
-}
-
-// Sign class
-function Sign(color, signIsBlinking) {
-	this.color = color;
-	this.signIsBlinking = (signIsBlinking === true);
-}
-
-// Signal class
-function Signal() {
-	this.width = 0;
-
-	this.addRow = function(a) {
-		if (a.length > this.width)
-			this.width = a.length;
-
-		this.push(a);
-	}
-}
-Signal.prototype = new Array();
-
-// Rule class
-function Rule(number, name, indication) {
-	this.number = number;
-	this.name = name;
-	this.indication = indication;
-}
-
-// Change to random signal
-function drawRandomSignal() {
-	currentRule = Math.floor(Math.random() * signalArray.length);
-	currentSignal = Math.floor(Math.random() * signalArray[currentRule].length);
-
-	drawSignal(signalArray[currentRule][currentSignal], ruleArray[currentRule]);
-}
-
-function resizeFlashCard() {
-	var h = (window.innerHeight || document.documentElement.clientHeight) - 1;
-	var w = (window.innerWidth || document.documentElement.clientWidth) - 1;
-	
-	if (h*1.5 > w)
-		h = w/1.5;
-	else
-		w = h*1.5;
-
-	fc.style.maxHeight = h + 'px';
-	fc.style.maxWidth = w + 'px';
-}
-window.addEventListener('resize', resizeFlashCard, false);
-
-function goBackCard() {
-	if (--currentSignal < 0) {
-		if (--currentRule < 0)
-			currentRule = signalArray.length - 1;
-		currentSignal = signalArray[currentRule].length - 1;
+		// Flip flash card over
+		fc_Stack.prototype.flipCard = function(direction) {
+			this.degreesFlipped += direction === DIRECTION.LEFT ? -180:180;
+			this.alterRotation(this.degreesFlipped);
+		} 
+		fc_Stack.prototype.moveCard = function(direction) {
+			console.log(direction);
+			switch (direction) {
+				case DIRECTION.LEFT:
+				case DIRECTION.RIGHT:
+					this.flipCard(direction);
+					break;
+				case DIRECTION.UP:
+					//this.card.classList.add('moveUp');
+					var t1 = setTimeout(this.showNextCard, 250);
+					//var t2 = setTimeout(function() {this.card.classList.remove('moveUp');}, 500);
+					break;
+				case DIRECTION.DOWN:
+					//this.card.classList.add('moveDown');
+					var t1 = setTimeout(this.showPrevCard, 250);
+					//var t2 = setTimeout(function() {this.card.classList.remove('moveDown');}, 500);
+					break;
+			}
+		}
 	}
 
-	drawSignal(signalArray[currentRule][currentSignal], ruleArray[currentRule]);
-}
+	// If touchscreen
+	if (canBeSwiped) {
+		// TouchMove
+		fc_Stack.prototype.touchmove = function(e) {
+			if (this.touchX != null && this.touchY != null) {
+				e.preventDefault();
 
-function goNextCard() {
-	if (signalArray[currentRule].length <= ++currentSignal) {
-		if (++currentRule >= signalArray.length)
-			currentRule = 0;
-		currentSignal = 0;
+				var curX = e.touches[0].pageX;
+				var curY = e.touches[0].pageY;
+				var swipeDir = swipeDirection(curX, curY);
+
+				// If tilt direction has changed
+				if (this.tiltDirection != swipeDir) {
+					var distX = Math.abs(curX - this.touchX);
+
+					// If length of swipe is long enough
+					if (distX > 50)
+						this.tiltDirection = swipeDir;
+						this.alterRotation(
+							this.degreesFlipped + (
+								(swipeDir === DIRECTION.LEFT) ? -15:15
+							)
+						);
+				}
+			}
+		}
+
+		for (var key in fc_stack) {
+			// Touchstart
+			fc_stack[key].card.addEventListener('touchstart', function(e) {
+				fc_stack[this.dataset.stackId].touchstart(e);
+			});
+
+			// Touchend
+			fc_stack[key].card.addEventListener('touchend', function(e) {
+				fc_stack[this.dataset.stackId].touchend(e);
+			});
+
+			// Touchmove
+			fc_stack[key].card.addEventListener('touchmove', function(e) {
+				fc_stack[this.dataset.stackId].touchmove(e);
+			});
+		}
 	}
+	else {
+		for (var key in fc_stack) {
+			// MouseDown
+			fc_stack[key].card.addEventListener('mousedown', function(e) {
+				fc_clickedCard = fc_stack[this.dataset.stackId];
+				e.touches = [{'pageX': e.clientX, 'pageY': e.clientX}];
+				fc_clickedCard.touchstart(e);
+			});
 
-	drawSignal(signalArray[currentRule][currentSignal], ruleArray[currentRule]);
+			// MouseUp
+			window.addEventListener('mouseup', function(e) {
+				if (fc_clickedCard) {
+					e.changedTouches = [{'pageX': e.clientX, 'pageY': e.clientX}];
+					console.log(e.changedTouches);
+					fc_clickedCard.touchend(e);
+				}
+				fc_clickedCard = false;
+			});
+		}
+	}
 }
