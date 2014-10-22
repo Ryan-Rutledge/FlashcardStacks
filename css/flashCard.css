@@ -16,6 +16,7 @@
 	width: 100%;
 	height: 100%;
 	display: relative;
+	-moz-perspective: 1000px;
 }
 
 .fc_card {
@@ -35,7 +36,7 @@
 	-ms-transform-style: preserve-3d;
 	
 	transform: rotateY(3600000deg);
-	transition: transform 0.5s ease-out;
+	transition: transform 0.4s ease-out;
 }
 
 .fc_card > canvas {
@@ -77,19 +78,19 @@
 }
 
 @-webkit-keyframes fc_gotoPrevCard {
-	50% { -webkit-transform: translate(0, -500%);}
-	50.01% { -webkit-transform: translate(0, 500%);}
+	50% { -webkit-transform: translate(0, -300%);}
+	50.01% { -webkit-transform: translate(0, 300%);}
 }
 @keyframes fc_gotoPrevCard {
-	50% { transform: translate(0, -500%);}
-	50.01% { transform: translate(0, 500%);}
+	50% { transform: translate(0, -300%);}
+	50.01% { transform: translate(0, 300%);}
 }
 
 @-webkit-keyframes fc_gotoNextCard {
-	50% { -webkit-transform: translate(0, 500%);}
-	50.01% { -webkit-transform: translate(0, -500%);}
+	50% { -webkit-transform: translate(0, 300%);}
+	50.01% { -webkit-transform: translate(0, -300%);}
 }
 @keyframes fc_gotoNextCard {
-	50% { transform: translate(0, 500%);}
-	50.01% { transform: translate(0, -500%);}
+	50% { transform: translate(0, 300%);}
+	50.01% { transform: translate(0, -300%);}
 }
