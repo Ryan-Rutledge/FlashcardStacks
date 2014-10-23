@@ -25,6 +25,7 @@ var fc = {
 
 	// Stack class for flashcards
 	Stack: function(stack) {
+		this.isFaceup = true; // Indicates if card is face up
 
 		// Set front and back of flashcard
 		this.front = document.createElement('canvas');
@@ -52,7 +53,7 @@ var fc = {
 		// Append to parent
 		stack.appendChild(margin);
 
-		this.cur = 0;
+		this.cur = 0; // Index of current card
 		this.fc_cards = []; // Empty stack of cards
 
 		this.resetTouchEvent();
@@ -113,8 +114,17 @@ var fc = {
 
 			// Flip flash card over
 			fc.Stack.prototype.flipCard = function(direction) {
-				this.degreesFlipped += direction === fc.DIRECTION.LEFT ? -180:180;
+				switch (direction) {
+					case fc.DIRECTION.LEFT:
+						this.degreesFlipped -= 180;
+						break;
+					default:
+						this.degreesFlipped -= 180;
+						break;
+				}
+
 				this.alterRotation(this.degreesFlipped);
+				this.isFaceup = !this.isFaceup;
 			} 
 
 			// Change to adjacent card
@@ -191,6 +201,7 @@ var fc = {
 			// Flip flash card over
 			fc.Stack.prototype.flipCard = function(direction) {
 				this.card.classList.toggle('fc_faceDown');
+				this.isFaceup = !this.isFaceup;
 			} 
 
 			// Change to adjacent card
