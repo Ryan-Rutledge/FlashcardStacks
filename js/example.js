@@ -1,17 +1,3 @@
-function example_init() {
-	// Load integer flashcards
-	for (var i in integers)
-		fc_stack.integers.push(
-			new fc_FlashCard(integers[i])
-		);
-
-	// Load color flashcards
-	for (var c in colors)
-		fc_stack.colors.push(
-			new fc_FlashCard(colors[c])
-		);
-}
-
 /******************************
  * Integer class              *
  ******************************/
@@ -51,7 +37,7 @@ Integer.prototype.drawBack = function(ctx) {
 }
 
 /******************************
- * Colors class               *
+ * Color class                *
  ******************************/
 
 Color = function(color, name) {

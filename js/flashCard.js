@@ -207,7 +207,7 @@ function fc_resize() {
 }
 
 // Setup
-function fc_init() {
+function fc_init(objectStacks) {
 	fc_stack = {};
 
 	// Get layout engine info
@@ -227,6 +227,13 @@ function fc_init() {
 	// Resize flashcards
 	window.addEventListener('resize', fc_resize);
 	fc_resize();
+
+	// Load parameter objects
+	for (var key in objectStacks) {
+		for (var o in objectStacks[key]) {
+			fc_stack[key].push(new fc_FlashCard(objectStacks[key][o]));
+		}
+	}
 
 	// If 3d animations are supported
 	if (canAnimateFlip) {

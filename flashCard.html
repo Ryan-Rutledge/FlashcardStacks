@@ -17,19 +17,18 @@
 			body {
 				background-color: #888;
 				font-family: sans;
-				min-width: 1.4in;
 				margin: 0;
 			}
 
 			.fc_stack {
 				height: 40%;
-				width: 100%;
-				padding: 5% 0;
+				width: 98%;
+				padding: 5% 1%;
 				float: left;
 			}
 		</style>
 	</head>
-	<body onload="fc_init(); example_init()">
+	<body onload="fc_init({'integers':integers, 'colors':colors})">
 		 <div id="integers" class="fc_stack"></div>
 		 <div id="colors" class="fc_stack"></div>
 	</body>
