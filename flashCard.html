@@ -9,6 +9,7 @@
 
 		<link href="css/flashCard.css" rel="stylesheet" type="text/css" />
 		<script src="js/flashCard.js" type="text/javascript" defer></script>
+		<script src="js/example.js" type="text/javascript" defer></script>
 
 		<style>
 			html, body {height: 100%;}
@@ -22,16 +23,14 @@
 
 			.fc_stack {
 				height: 40%;
-				width: 40%;
-				padding: 5% !important;
+				width: 100%;
+				padding: 5% 0;
 				float: left;
 			}
 		</style>
 	</head>
-	<body onload="fc_init()">
-		 <div id="colors" class="fc_stack"></div>
-		 <div id="shapes" class="fc_stack"></div>
+	<body onload="fc_init(); example_init()">
 		 <div id="integers" class="fc_stack"></div>
-		 <div id="drawings" class="fc_stack"></div>
+		 <div id="colors" class="fc_stack"></div>
 	</body>
 </html>

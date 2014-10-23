@@ -57,11 +57,24 @@
 }
 
 .fc_card > canvas:nth-child(2) {
-	background-color: blue;
 	transform: rotateY(180deg);
 	-webkit-transform: rotateY(180deg);
 	-moz-transform: rotateY(180deg);
 	-ms-transform: rotateY(180deg);
+}
+
+.fc_noAnimation > canvas:nth-child(2) {
+	display: none;
+	transform: none;
+	-webkit-transform: none;
+	-moz-transform: none;
+	-ms-transform: none;
+}
+.fc_noAnimation.fc_faceDown > canvas:nth-child(2) {
+	display: block;
+}
+.fc_noAnimation.fc_faceDown > canvas:nth-child(1) {
+	display: none;
 }
 
 .fc_moveUp, .fc_moveDown {
