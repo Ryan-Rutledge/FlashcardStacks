@@ -59,11 +59,6 @@
 	transform: rotateY(180deg);
 }
 
-.fc_card.fc_flipLeft, .fc_card.fc_flipRight {
-	-webkit-transition: -webkit-transform 0.4s ease-out;
-	transition: transform 0.5s ease-out;
-}
-
 .fc_facedown {
 	-webkit-transform: rotateY(180deg);
 	-ms-transform: rotateY(180deg);
@@ -73,6 +68,13 @@
 	-webkit-transform: rotateY(360deg);
 	-ms-transform: rotateY(360deg);
 	transform: rotateY(360deg);
+}
+
+/* Faceup transforms */
+.fc_flipLeft, .fc_tiltLeft,
+.fc_flipRight, .fc_tiltRight {
+	-webkit-transition: -webkit-transform 0.4s ease-out;
+	transition: transform 0.5s ease-out;
 }
 .fc_faceup.fc_flipLeft {
 	-webkit-transform: rotateY(180deg);
@@ -84,6 +86,18 @@
 	-ms-transform: rotateY(540deg);
 	transform: rotateY(540deg);
 }
+.fc_faceup.fc_tiltRight {
+	-webkit-transform: rotateY(375deg);
+	-ms-transform: rotateY(375deg);
+	transform: rotateY(375deg);
+}
+.fc_faceup.fc_tiltLeft {
+	-webkit-transform: rotateY(345deg);
+	-ms-transform: rotateY(345deg);
+	transform: rotateY(345deg);
+}
+
+/* Facedown transforms */
 .fc_facedown.fc_flipLeft {
 	-webkit-transform: rotateY(0);
 	-ms-transform: rotateY(0);
@@ -93,6 +107,16 @@
 	-webkit-transform: rotateY(360deg);
 	-ms-transform: rotateY(360deg);
 	transform: rotateY(360deg);
+}
+.fc_facedown.fc_tiltRight {
+	-webkit-transform: rotateY(195deg);
+	-ms-transform: rotateY(195deg);
+	transform: rotateY(195deg);
+}
+.fc_facedown.fc_tiltLeft {
+	-webkit-transform: rotateY(165deg);
+	-ms-transform: rotateY(165deg);
+	transform: rotateY(165deg);
 }
 
 .fc_noAnimation > canvas:nth-child(2), .fc_flipLeft, .fc_flipRight {

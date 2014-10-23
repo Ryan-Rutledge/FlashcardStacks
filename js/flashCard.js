@@ -163,27 +163,35 @@ var fc = {
 				}
 			}
 
-			/*
 			// TouchMove
 			fc.Stack.prototype.touchmove = function(e) {
 				if (this.touchX != null && this.touchY != null) {
 					e.preventDefault();
 
+					var card = this.card;
 					var curX = e.touches[0].pageX;
 					var curY = e.touches[0].pageY;
-
 					var dist = Math.max(Math.abs(curX - this.touchX), Math.abs(curY - this.touchY));
 
 					// If length of swipe is long enough
 					if (dist > this.swipeDist) {
-						var swipeDir = fc.swipeDirection(this.touchX, this.touchY, curX, curY);
-
-						if (swipeDir % 2 === 0)  {
-							this.alterRotation(this.degreesFlipped + ((swipeDir === fc.DIRECTION.LEFT) ? -fc.tiltDegrees:fc.tiltDegrees));
+						switch (fc.swipeDirection(this.touchX, this.touchY, curX, curY)) {
+							case fc.DIRECTION.LEFT:
+								card.classList.remove('fc_tiltRight');
+								card.classList.add('fc_tiltLeft');
+								break;
+							case fc.DIRECTION.RIGHT:
+								card.classList.remove('fc_tiltLeft');
+								card.classList.add('fc_tiltRight');
+								break;
+							default:
+								card.classList.remove('fc_tiltLeft');
+								card.classList.remove('fc_tiltRight');
 						}
 					}
 					else {
-						this.alterRotation(this.degreesFlipped);
+						card.classList.remove('fc_tiltLeft');
+						card.classList.remove('fc_tiltRight');
 					}
 				}
 			}
@@ -207,7 +215,6 @@ var fc = {
 					});
 				}
 			}
-			*/
 
 			for (var key in fc.stacks) {
 				fc.stacks[key].degreesFlipped = 3600000;
@@ -367,6 +374,8 @@ fc.Stack.prototype.draw = function() {
 fc.Stack.prototype.resetTouchEvent = function() {
 	this.touchX = null;
 	this.touchY = null;
+	this.card.classList.remove('fc_tiltLeft');
+	this.card.classList.remove('fc_tiltRight');
 }
 
 // Touchstart
