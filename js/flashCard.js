@@ -354,6 +354,7 @@ function fc_init(objectStacks) {
 				e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
 				fc_clickedCard.touchstart(e);
 			});
+		}
 
 			// MouseUp
 			window.addEventListener('mouseup', function(e) {
@@ -363,6 +364,5 @@ function fc_init(objectStacks) {
 				}
 				fc_clickedCard = false;
 			});
-		}
 	}
 }
