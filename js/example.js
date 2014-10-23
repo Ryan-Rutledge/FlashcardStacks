@@ -41,9 +41,8 @@ Integer.prototype.drawBack = function(ctx) {
  * Color class                *
  ******************************/
 
-Color = function(color, name) {
+Color = function(color) {
 	this.color = color;
-	this.name = name;
 }
 Color.prototype.drawFront = function(ctx) {
 	var w = ctx.canvas.width / 2;
@@ -54,7 +53,7 @@ Color.prototype.drawFront = function(ctx) {
 	ctx.font = w / 2 + 'px sans';
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
-	ctx.fillText(this.name, w, h);
+	ctx.fillText(this.color, w, h);
 }
 Color.prototype.drawBack = function(ctx) {
 	ctx.fillStyle = this.color;
@@ -66,9 +65,12 @@ Color.prototype.drawBack = function(ctx) {
  ******************************/
 
 colors = [
-	new Color('#F00', 'Red'),
-	new Color('#0F0', 'Green'),
-	new Color('#00F', 'Blue')
+	new Color('red'),
+	new Color('orange'),
+	new Color('yellow'),
+	new Color('green'),
+	new Color('blue'),
+	new Color('purple')
 ]
 
 integers = [

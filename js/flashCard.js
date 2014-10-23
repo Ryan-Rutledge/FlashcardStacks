@@ -119,7 +119,7 @@ var fc = {
 						this.degreesFlipped -= 180;
 						break;
 					default:
-						this.degreesFlipped -= 180;
+						this.degreesFlipped += 180;
 						break;
 				}
 
