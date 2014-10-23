@@ -2,9 +2,6 @@
 	overflow: hidden;
 	box-sizing: border-box;
 
-	perspective: 1000px;
-	-webkit-perspective: 1000px;
-
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
 	-khtml-user-select: none;
@@ -17,7 +14,10 @@
 	width: 100%;
 	height: 100%;
 	position: relative;
+
+	-webkit-perspective: 1000px;
 	-moz-perspective: 1000px;
+	perspective: 1000px;
 }
 
 .fc_card {
@@ -35,9 +35,6 @@
 	transform-style: preserve-3d;
 	-webkit-transform-style: preserve-3d;
 	-ms-transform-style: preserve-3d;
-	
-	transform: rotateY(3600000deg);
-	transition: transform 0.4s ease-out;
 }
 
 .fc_card > canvas {
@@ -47,34 +44,70 @@
 	position: absolute;
 	background-color: #fff;
 
-	border-radius: 3px;
 	-webkit-border-radius: 3px;
 	-moz-border-radius: 3px;
+	border-radius: 3px;
 
-	backface-visibility: hidden;
 	-webkit-backface-visibility: hidden;
-	-moz-backface-visibility: hidden;
 	-ms-backface-visibility: hidden;
+	backface-visibility: hidden;
 }
 
 .fc_card > canvas:nth-child(2) {
-	transform: rotateY(180deg);
 	-webkit-transform: rotateY(180deg);
-	-moz-transform: rotateY(180deg);
 	-ms-transform: rotateY(180deg);
+	transform: rotateY(180deg);
 }
 
-.fc_noAnimation > canvas:nth-child(2) {
-	display: none;
-	transform: none;
+.fc_card.fc_flipLeft, .fc_card.fc_flipRight {
+	-webkit-transition: -webkit-transform 0.4s ease-out;
+	transition: transform 0.5s ease-out;
+}
+
+.fc_facedown {
+	-webkit-transform: rotateY(180deg);
+	-ms-transform: rotateY(180deg);
+	transform: rotateY(180deg);
+}
+.fc_faceup {
+	-webkit-transform: rotateY(360deg);
+	-ms-transform: rotateY(360deg);
+	transform: rotateY(360deg);
+}
+.fc_faceup.fc_flipLeft {
+	-webkit-transform: rotateY(180deg);
+	-ms-transform: rotateY(180deg);
+	transform: rotateY(180deg);
+}
+.fc_faceup.fc_flipRight {
+	-webkit-transform: rotateY(540deg);
+	-ms-transform: rotateY(540deg);
+	transform: rotateY(540deg);
+}
+.fc_facedown.fc_flipLeft {
+	-webkit-transform: rotateY(0);
+	-ms-transform: rotateY(0);
+	transform: rotateY(0);
+}
+.fc_facedown.fc_flipRight {
+	-webkit-transform: rotateY(360deg);
+	-ms-transform: rotateY(360deg);
+	transform: rotateY(360deg);
+}
+
+.fc_noAnimation > canvas:nth-child(2), .fc_flipLeft, .fc_flipRight {
 	-webkit-transform: none;
 	-moz-transform: none;
 	-ms-transform: none;
+	transform: none;
 }
-.fc_noAnimation.fc_faceDown > canvas:nth-child(2) {
+.fc_noAnimation > canvas:nth-child(2) {
+	display: none;
+}
+.fc_noAnimation.fc_facedown > canvas:nth-child(2) {
 	display: block;
 }
-.fc_noAnimation.fc_faceDown > canvas:nth-child(1) {
+.fc_noAnimation.fc_facedown > canvas:nth-child(1) {
 	display: none;
 }
 

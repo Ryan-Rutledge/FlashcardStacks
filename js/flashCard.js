@@ -6,6 +6,9 @@ var fc = {
 	stacks: {}, // List of flashcard stacks
 	SWIPE_DISTANCE: 0.15, // Percentage of flashcard width required to flip a card
 	tiltDegrees: 15, // Degrees card tilts
+	flipTime: 400, // Length of card flip animation 
+	changeTime: 500, // Length of card change animation
+	changeHalf: 250,
 	DIRECTION: {LEFT: 0, UP: 1, RIGHT: 2, DOWN: 3}, // Direction enum
 
 	// Return direction of cursor/touch movement
@@ -38,7 +41,8 @@ var fc = {
 		// Set card
 		this.card = document.createElement('div');
 		with (this.card) {
-			classList.add('fc_card')
+			classList.add('fc_card');
+			classList.add('fc_faceup');
 			dataset.stackId = stack.getAttribute('id');
 			appendChild(this.front);
 			appendChild(this.back);
@@ -114,17 +118,31 @@ var fc = {
 
 			// Flip flash card over
 			fc.Stack.prototype.flipCard = function(direction) {
-				switch (direction) {
-					case fc.DIRECTION.LEFT:
-						this.degreesFlipped -= 180;
-						break;
-					default:
-						this.degreesFlipped += 180;
-						break;
+				var card = this.card
+
+				if (this.isFaceup) {
+					this.isFaceup = false;
+					var t1 = setTimeout(function() {
+						card.classList.add('fc_facedown');
+						card.classList.remove('fc_faceup');
+					}, fc.flipTime);
+				}
+				else {
+					this.isFaceup = true;
+					var t1 = setTimeout(function() {
+						card.classList.add('fc_faceup');
+						card.classList.remove('fc_facedown');
+					}, fc.flipTime);
 				}
 
-				this.alterRotation(this.degreesFlipped);
-				this.isFaceup = !this.isFaceup;
+				if (direction == fc.DIRECTION.LEFT) {
+					card.classList.add('fc_flipLeft');
+					var t2 = setTimeout(function() {card.classList.remove('fc_flipLeft')}, fc.flipTime);
+				}
+				else {
+					card.classList.add('fc_flipRight');
+					var t2 = setTimeout(function() {card.classList.remove('fc_flipRight')}, fc.flipTime);
+				}
 			} 
 
 			// Change to adjacent card
@@ -134,17 +152,18 @@ var fc = {
 				switch (direction) {
 					case fc.DIRECTION.UP:
 						this.card.classList.add('fc_moveUp');
-						var t1 = setTimeout(function() {cur.showNextCard(cur)}, 250);
-						var t2 = setTimeout(function() {cur.card.classList.remove('fc_moveUp');}, 500);
+						var t1 = setTimeout(function() {cur.showNextCard(cur)}, fc.changeHalf);
+						var t2 = setTimeout(function() {cur.card.classList.remove('fc_moveUp');}, fc.changeTime);
 						break;
 					default:
 						this.card.classList.add('fc_moveDown');
-						var t1 = setTimeout(function() {cur.showPrevCard(cur)}, 250);
-						var t2 = setTimeout(function() {cur.card.classList.remove('fc_moveDown');}, 500);
+						var t1 = setTimeout(function() {cur.showPrevCard(cur)}, fc.changeHalf);
+						var t2 = setTimeout(function() {cur.card.classList.remove('fc_moveDown');}, fc.changeTime);
 						break;
 				}
 			}
 
+			/*
 			// TouchMove
 			fc.Stack.prototype.touchmove = function(e) {
 				if (this.touchX != null && this.touchY != null) {
@@ -188,6 +207,7 @@ var fc = {
 					});
 				}
 			}
+			*/
 
 			for (var key in fc.stacks) {
 				fc.stacks[key].degreesFlipped = 3600000;
@@ -200,7 +220,8 @@ var fc = {
 
 			// Flip flash card over
 			fc.Stack.prototype.flipCard = function(direction) {
-				this.card.classList.toggle('fc_faceDown');
+				this.card.classList.toggle('fc_facedown');
+				this.card.classList.toggle('fc_faceup');
 				this.isFaceup = !this.isFaceup;
 			} 
 
