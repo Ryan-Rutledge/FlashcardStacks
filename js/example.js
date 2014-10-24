@@ -20,20 +20,17 @@ Integer.prototype.drawFront = function(ctx) {
 Integer.prototype.drawBack = function(ctx) {
 	var w = ctx.canvas.width / 2;
 	var h = ctx.canvas.height / 2;
+	var circleDist = w / 2;
+	var circleDiameter = w / 5;
 
-	// Circle
+	// Circles
 	ctx.fillStyle = '#333';
-	ctx.beginPath()
-	ctx.arc(w, h, w, 0, 2*Math.PI);
-	ctx.closePath()
-	ctx.fill();
-
-	// Number
-	ctx.font = w + 'px monospace';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.fillStyle = '#fff';
-	ctx.fillText(this.number, w, h);
+	for (var i = 0; i < this.number; i++) {
+		ctx.beginPath()
+		ctx.arc(circleDist+circleDist*(i%3), h * (i >= 3 ? 1.4:0.6), circleDiameter, 0, 2*Math.PI);
+		ctx.fill();
+		ctx.closePath()
+	}
 }
 
 /******************************
@@ -47,7 +44,7 @@ Color.prototype.drawFront = function(ctx) {
 	var w = ctx.canvas.width / 2;
 	var h = ctx.canvas.height / 2;
 
-	// Number
+	// String
 	ctx.fillStyle = '#333';
 	ctx.font = w / 2 + 'px sans';
 	ctx.textAlign = 'center';
@@ -55,8 +52,12 @@ Color.prototype.drawFront = function(ctx) {
 	ctx.fillText(this.color, w, h);
 }
 Color.prototype.drawBack = function(ctx) {
+	// Color
 	ctx.fillStyle = this.color;
-	ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	ctx.beginPath()
+	ctx.arc(ctx.canvas.width/2, ctx.canvas.height/2, ctx.canvas.height/3, 0, 2*Math.PI);
+	ctx.fill();
+	ctx.closePath()
 }
 
 /******************************
@@ -74,16 +75,12 @@ Color.prototype.drawBack = function(ctx) {
 	]
 
 	integers = [
-		new Integer(0, 'Zero'),
 		new Integer(1, 'One'),
 		new Integer(2, 'Two'),
 		new Integer(3, 'Three'),
 		new Integer(4, 'Four'),
 		new Integer(5, 'Five'),
 		new Integer(6, 'Six'),
-		new Integer(7, 'Seven'),
-		new Integer(8, 'Eight'),
-		new Integer(9, 'Nine')
 	]
 
 	fc.init({
@@ -91,9 +88,10 @@ Color.prototype.drawBack = function(ctx) {
 		'colors': colors
 	});
 	
+	fc.enableArrowKeys(); // Enable arrow keys
+	fc.enableScaling('colors'); // Enable scalable canvas
 	fc.enableClicking(); // Enable mouse dragging
 	fc.enableDragging(); // Enable mouse dragging
-	fc.enableArrowKeys('integers'); // Enable arrow keys
 	fc.enableTilting(); // Enable mouse dragging
 	fc.enableSwiping(); // Enable touchscreen swiping
  }

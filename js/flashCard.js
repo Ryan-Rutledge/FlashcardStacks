@@ -30,19 +30,26 @@ var fc = {
 	// Stack constructor
 	Stack: function(stack) {
 		this.isFaceup = true; // Card is face up
+		this.swipeDist = 1; // Minimum swipe distance required to flip card
 		this.touchEnabled = false; // Swiping
 		this.tiltEnabled = false; // Tilt flip indication
 		this.dragEnabled = false; // Mouse dragging
 		this.keysEnabled = false; // Arrow keys
 		this.clickEnabled = false; // Mouse clicking
+		this.scalingEnabled = false; // Canvas resize with flashcard
 
 		// Set front and back of flashcard
 		this.front = document.createElement('canvas');
+		this.front.classList.add('fc_side');
+		this.front.classList.add('fc_front');
 		this.back = document.createElement('canvas');
+		this.back.classList.add('fc_side');
+		this.back.classList.add('fc_back');
 
 		// Set dimensions
-		this.front.height = this.back.height = 400;
-		this.front.width = this.back.width = 600;
+		this.front.height = this.back.height = stack.dataset.fcHeight ? stack.dataset.fcHeight:400;
+		this.front.width = this.back.width = stack.dataset.fcWidth ? stack.dataset.fcWidth:600;
+		this.aspectRatio = this.front.width / this.front.height;
 
 		// Set card
 		this.card = document.createElement('div');
@@ -68,40 +75,26 @@ var fc = {
 		this.resetTouchEvent();
 	},
 
-	// Resize flashcards while maintaining aspect ratio
+	// Resize all stacks
 	resize: function() {
-		for (var key in fc.stacks) {
-			var h = fc.stacks[key].container.clientHeight;
-			var w = fc.stacks[key].container.clientWidth;
-			
-			if (h*1.5 > w)
-				h = w/1.5;
-			else
-				w = h*1.5;
-
-			with (fc.stacks[key].card.style) {
-				maxHeight = h + 'px';
-				maxWidth = w + 'px';
-			}
-
-			fc.stacks[key].swipeDist = w * fc.SWIPE_DISTANCE;
-		}
+		for (var key in fc.stacks)
+			fc.stacks[key].resize();
 	},
 
-	enableSwiping: function(swipeStacks) {
-		if (!swipeStacks) swipeStacks = fc.keys;
+	enableSwiping: function() {
+		var stacks = arguments ? fc.keys:arguments;
 
-		for (var s in swipeStacks) {
-			var curStack = fc.stacks[swipeStacks[s]];
+		for (var s in stacks) {
+			var curStack = fc.stacks[stacks[s]];
 			curStack.enableSwiping();
 		}
 	},
 
-	enableDragging: function(dragStacks) {
-		if (!dragStacks) dragStacks = fc.keys;
+	enableDragging: function() {
+		var stacks = arguments ? fc.keys:arguments;
 
-		for (var s in dragStacks) {
-			var curStack = fc.stacks[dragStacks[s]];
+		for (var s in stacks) {
+			var curStack = fc.stacks[stacks[s]];
 			curStack.dragEnabled = true;
 			curStack.enableDragging();
 		}
@@ -116,11 +109,11 @@ var fc = {
 		});
 	},
 
-	enableTilting: function(tiltStacks) {
-		if (!tiltStacks) tiltStacks = fc.keys;
+	enableTilting: function() {
+		var stacks = arguments.length ? arguments:fc.keys;
 
-		for (var s in tiltStacks) {
-			var curStack = fc.stacks[tiltStacks[s]];
+		for (var s in stacks) {
+			var curStack = fc.stacks[stacks[s]];
 			curStack.tiltEnabled = true;
 
 			// Touchmove
@@ -142,22 +135,35 @@ var fc = {
 		}
 	},
 
-	enableArrowKeys: function(arrowStack) {
-		var curStack = fc.stacks[arrowStack ? arrowStack:fc.keys[0]];
-		curStack.keysEnabled = true;
+	enableArrowKeys: function() {
+		var stacks = arguments.length ? arguments:fc.keys;
 
-		window.addEventListener('keydown', function(e) {
-			if (e.which >= 37 && e.which <= 40)
-				curStack.moveCard(e.which - 37);
-		}, false);
+			window.addEventListener('keydown', function(e) {
+				if (e.which >= 37 && e.which <= 40)
+					for (var s in stacks) {
+						var curStack = fc.stacks[stacks[s]];
+						curStack.keysEnabled;
+						curStack.moveCard(e.which - 37);
+					}
+			}, false);
 	},
 
-	enableClicking: function(clickStacks) {
-		if (!clickStacks) clickStacks = fc.keys;
+	enableClicking: function() {
+		var stacks = arguments.length ? arguments:fc.keys;
 
-		for (var s in clickStacks) {
-			var curStack = fc.stacks[clickStacks[s]];
+		for (var s in stacks) {
+			var curStack = fc.stacks[stacks[s]];
 			curStack.enableClicking();
+		}
+	},
+
+	enableScaling: function() {
+		var stacks = arguments.length ? arguments:fc.keys;
+
+		for (var s in stacks) {
+			var curStack = fc.stacks[stacks[s]]
+			curStack.scalingEnabled = true;
+			curStack.resize();
 		}
 	},
 
@@ -227,6 +233,7 @@ var fc = {
 				if (!this.animating) {
 					this.animating = true;
 					var thisStack = this;
+
 					switch (direction) {
 						case fc.DIRECTION.UP:
 							this.card.classList.add('fc_moveUp');
@@ -294,7 +301,7 @@ fc.Stack.prototype.push = function(flashcard) {
 
 	if (this.fc_cards.length <= 1) {
 		this.container.style.display = '';
-		fc.resize();
+		this.resize();
 		this.draw();
 	}
 }
@@ -304,7 +311,32 @@ fc.Stack.prototype.pop = function() {
 	if (this.fc_cards.length <= 1) {
 		this.container.style.display = 'none';
 	}
+	this.keys();
 	return this.fc_cards.pop();
+}
+
+// Resize flashcards while maintaining aspect ratio
+fc.Stack.prototype.resize = function() {
+	with (this) {
+		var h = container.clientHeight;
+		var w = container.clientWidth;
+
+		if (h*1.5 > w)
+			h = w/aspectRatio;
+		else
+			w = h*aspectRatio;
+
+		card.style.maxHeight = h + 'px';
+		card.style.maxWidth = w + 'px';
+
+		swipeDist = w * fc.SWIPE_DISTANCE;
+
+		if (scalingEnabled) {
+			front.width = back.width = w;
+			front.height = back.height = h;
+			draw();
+		}
+	}
 }
 
 // Set height and width of canvas context

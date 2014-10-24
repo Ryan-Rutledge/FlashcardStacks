@@ -37,7 +37,7 @@
 	-ms-transform-style: preserve-3d;
 }
 
-.fc_card > canvas {
+.fc_side {
 	display: block;
 	width: 100%;
 	height: 100%;
@@ -53,12 +53,15 @@
 	backface-visibility: hidden;
 }
 
+.fc_flipLeft, .fc_tiltLeft, .fc_flipRight, .fc_tiltRight {
+	-webkit-transition: -webkit-transform 0.4s ease-out;
+	transition: transform 0.5s ease-out;
+}
 .fc_card > canvas:nth-child(2) {
 	-webkit-transform: rotateY(180deg);
 	-ms-transform: rotateY(180deg);
 	transform: rotateY(180deg);
 }
-
 .fc_facedown, .fc_faceup.fc_flipLeft {
 	-webkit-transform: rotateY(180deg);
 	-ms-transform: rotateY(180deg);
@@ -69,59 +72,50 @@
 	-ms-transform: rotateY(360deg);
 	transform: rotateY(360deg);
 }
-
-/* Faceup transforms */
-.fc_flipLeft, .fc_tiltLeft,
-.fc_flipRight, .fc_tiltRight {
-	-webkit-transition: -webkit-transform 0.4s ease-out;
-	transition: transform 0.5s ease-out;
-}
 .fc_faceup.fc_flipRight {
 	-webkit-transform: rotateY(540deg);
 	-ms-transform: rotateY(540deg);
 	transform: rotateY(540deg);
 }
 .fc_faceup.fc_tiltRight {
-	-webkit-transform: rotateY(375deg);
-	-ms-transform: rotateY(375deg);
-	transform: rotateY(375deg);
+	-webkit-transform: rotateY(380deg);
+	-ms-transform: rotateY(380deg);
+	transform: rotateY(380deg);
 }
 .fc_faceup.fc_tiltLeft {
-	-webkit-transform: rotateY(345deg);
-	-ms-transform: rotateY(345deg);
-	transform: rotateY(345deg);
+	-webkit-transform: rotateY(340deg);
+	-ms-transform: rotateY(340deg);
+	transform: rotateY(340deg);
 }
-
-/* Facedown transforms */
 .fc_facedown.fc_flipLeft {
 	-webkit-transform: rotateY(0);
 	-ms-transform: rotateY(0);
 	transform: rotateY(0);
 }
 .fc_facedown.fc_tiltRight {
-	-webkit-transform: rotateY(195deg);
-	-ms-transform: rotateY(195deg);
-	transform: rotateY(195deg);
+	-webkit-transform: rotateY(200deg);
+	-ms-transform: rotateY(200deg);
+	transform: rotateY(200deg);
 }
 .fc_facedown.fc_tiltLeft {
-	-webkit-transform: rotateY(165deg);
-	-ms-transform: rotateY(165deg);
-	transform: rotateY(165deg);
+	-webkit-transform: rotateY(160deg);
+	-ms-transform: rotateY(160deg);
+	transform: rotateY(1650eg);
 }
 
-.fc_noAnimation > canvas:nth-child(2), .fc_flipLeft, .fc_flipRight {
+.fc_noAnimation > .fc_backSide, .fc_flipLeft, .fc_flipRight {
 	-webkit-transform: none;
 	-moz-transform: none;
 	-ms-transform: none;
 	transform: none;
 }
-.fc_noAnimation > canvas:nth-child(2) {
+.fc_noAnimation > .fc_backSide {
 	display: none;
 }
-.fc_noAnimation.fc_facedown > canvas:nth-child(2) {
+.fc_noAnimation.fc_facedown > .fc_backSide {
 	display: block;
 }
-.fc_noAnimation.fc_facedown > canvas:nth-child(1) {
+.fc_noAnimation.fc_facedown > .fc_frontSide {
 	display: none;
 }
 
