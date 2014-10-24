@@ -88,10 +88,11 @@ Color.prototype.drawBack = function(ctx) {
 		'colors': colors
 	});
 	
-	fc.enableArrowKeys(); // Enable arrow keys
-	fc.enableClicking(); // Enable mouse dragging
-	fc.enableDragging(); // Enable mouse dragging
-	fc.enableTilting(); // Enable mouse dragging
-	fc.enableSwiping(); // Enable touchscreen swiping
-	fc.enableAll('colors'); // Enable scalable canvas
+	fc.enableArrowKeys('integers'); // Enable arrow keys on integers stack
+	fc.enableDragging(); // Enable mouse dragging on all stacks
+	fc.enableTilting('integers', 'words'); // Allow dragging/swiping to tilt all stacks
+	fc.enableSwiping(); // Enable touchscreen swiping on all stacks
+
+	fc.enableClicking('colors', 'words'); // Enable mouse dragging on colors and words stacks
+	fc.rescale('colors'); // Resize the colors canvas context to match the actual size of the canvas
  }

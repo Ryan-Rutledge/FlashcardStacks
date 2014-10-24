@@ -156,17 +156,17 @@ var fc = {
 					curStack.touchmove(e);
 				});
 			}
-
-			// Mousemove
-			if (curStack.dragEnabled) {
-				window.addEventListener('mousemove', function(e) {
-					if (fc.clickedCard) {
-						e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-						fc.clickedCard.touchmove(e);
-					}
-				});
-			}
 		}
+
+		// Mousemove
+		window.addEventListener('mousemove', function(e) {
+			if (fc.clickedCard) {
+				e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+				if (fc.clickedCard.tiltEnabled) {
+					fc.clickedCard.touchmove(e);
+				}
+			}
+		});
 
 		return fc;
 	},
@@ -197,7 +197,7 @@ var fc = {
 		return fc;
 	},
 
-	enableScaling: function() {
+	rescale: function() {
 		var stacks = arguments.length ? arguments:fc.keys;
 
 		for (var s in stacks) {
@@ -214,7 +214,6 @@ var fc = {
 
 		for (var s in stacks) {
 			fc.enableArrowKeys(stacks[s]); // Enable arrow keys
-			fc.enableScaling(stacks[s]); // Enable scalable canvas
 			fc.enableClicking(stacks[s]); // Enable mouse dragging
 			fc.enableDragging(stacks[s]); // Enable mouse dragging
 			fc.enableTilting(stacks[s]); // Enable mouse dragging
@@ -461,7 +460,9 @@ fc.Stack.prototype.moveCard = function(direction) {
 				this.fc_cards[this.cur].flip(direction);
 			break;
 		default:
-			this.changeCard(direction);
+			if (this.fc_cards.length > 1) {
+				this.changeCard(direction);
+			}
 	}
 }
 
