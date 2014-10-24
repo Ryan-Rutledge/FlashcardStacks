@@ -112,7 +112,7 @@ var fc = {
 	},
 
 	enableSwiping: function() {
-		var stacks = arguments ? fc.keys:arguments;
+		var stacks = arguments.length ? arguments:fc.keys;
 
 		for (var s in stacks) {
 			var curStack = fc.stacks[stacks[s]];
@@ -131,7 +131,8 @@ var fc = {
 	},
 
 	enableDragging: function() {
-		var stacks = arguments ? fc.keys:arguments;
+		var stacks = arguments.length ? arguments:fc.keys;
+		console.log(stacks);
 
 		for (var s in stacks) {
 			var curStack = fc.stacks[stacks[s]];
