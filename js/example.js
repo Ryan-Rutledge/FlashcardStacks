@@ -94,11 +94,11 @@ Color.prototype.onEnter = function(fc_stack) {
 		'colors': colors
 	});
 	
-	fc.enableArrowKeys('integers'); // Enable arrow keys on integers stack
-	fc.enableDragging(); // Enable mouse dragging on all stacks
-	fc.enableTilting('integers', 'words'); // Allow dragging/swiping to tilt all stacks
 	fc.enableSwiping(); // Enable touchscreen swiping on all stacks
+	fc.enableArrowKeys('integers'); // Enable arrow keys on integers stack
+	fc.enableClicking('integers'); // Enable mouse clicking on integers stack
+	fc.enableDragging('words', 'colors'); // Enable mouse dragging on words and colors stacks
+	fc.enableTilting('words'); // Allow dragging/swiping to tilt words stack
 
-	fc.enableClicking('colors', 'words'); // Enable mouse dragging on colors and words stacks
 	fc.rescale('colors'); // Resize the colors canvas context to match the actual size of the canvas
  }
