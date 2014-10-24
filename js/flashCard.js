@@ -133,11 +133,11 @@ var fc = {
 
 		// MouseUp
 		window.addEventListener('mouseup', function(e) {
-			if (fc.clickedCard) {
+			if (fc.clickedStack) {
 				e.changedTouches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-				fc.clickedCard.touchend(e);
+				fc.clickedStack.touchend(e);
 			}
-			fc.clickedCard = false;
+			fc.clickedStack = false;
 		});
 
 		return fc;
@@ -160,11 +160,9 @@ var fc = {
 
 		// Mousemove
 		window.addEventListener('mousemove', function(e) {
-			if (fc.clickedCard) {
+			if (fc.clickedStack && fc.clickedStack.tiltEnabled) {
 				e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-				if (fc.clickedCard.tiltEnabled) {
-					fc.clickedCard.touchmove(e);
-				}
+				fc.clickedStack.touchmove(e);
 			}
 		});
 
@@ -563,9 +561,9 @@ fc.Stack.prototype.enableDragging = function() {
 
 	// MouseDown
 	thisStack.card.addEventListener('mousedown', function(e) {
-		fc.clickedCard = thisStack;
+		fc.clickedStack = thisStack;
 		e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-		fc.clickedCard.touchstart(e);
+		fc.clickedStack.touchstart(e);
 	});
 }
 
