@@ -8,8 +8,8 @@
 		<title>NARS Flash Cards</title>
 
 		<link href="css/flashCard.css" rel="stylesheet" type="text/css" />
-		<script src="js/flashCard.js" type="text/javascript" defer></script>
-		<script src="js/example.js" type="text/javascript" defer></script>
+		<script src="js/flashCard.js" type="text/javascript"></script>
+		<script src="js/example.js" type="text/javascript"></script>
 
 		<style>
 			html, body {height: 100%;}
@@ -27,7 +27,7 @@
 			}
 		</style>
 	</head>
-	<body onload="fc.init({'integers':integers, 'colors':colors})">
+	<body onload="init()">
 		 <div id="integers" class="fc_stack"></div>
 		 <div id="colors" class="fc_stack"></div>
 	</body>

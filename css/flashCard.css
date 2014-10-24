@@ -59,12 +59,12 @@
 	transform: rotateY(180deg);
 }
 
-.fc_facedown {
+.fc_facedown, .fc_faceup.fc_flipLeft {
 	-webkit-transform: rotateY(180deg);
 	-ms-transform: rotateY(180deg);
 	transform: rotateY(180deg);
 }
-.fc_faceup {
+.fc_faceup, .fc_facedown.fc_flipRight {
 	-webkit-transform: rotateY(360deg);
 	-ms-transform: rotateY(360deg);
 	transform: rotateY(360deg);
@@ -75,11 +75,6 @@
 .fc_flipRight, .fc_tiltRight {
 	-webkit-transition: -webkit-transform 0.4s ease-out;
 	transition: transform 0.5s ease-out;
-}
-.fc_faceup.fc_flipLeft {
-	-webkit-transform: rotateY(180deg);
-	-ms-transform: rotateY(180deg);
-	transform: rotateY(180deg);
 }
 .fc_faceup.fc_flipRight {
 	-webkit-transform: rotateY(540deg);
@@ -102,11 +97,6 @@
 	-webkit-transform: rotateY(0);
 	-ms-transform: rotateY(0);
 	transform: rotateY(0);
-}
-.fc_facedown.fc_flipRight {
-	-webkit-transform: rotateY(360deg);
-	-ms-transform: rotateY(360deg);
-	transform: rotateY(360deg);
 }
 .fc_facedown.fc_tiltRight {
 	-webkit-transform: rotateY(195deg);

@@ -4,6 +4,7 @@
 var fc = {
 	// Global variables
 	stacks: {}, // List of flashcard stacks
+	keys: [], // List of stack keys
 	SWIPE_DISTANCE: 0.15, // Percentage of flashcard width required to flip a card
 	tiltDegrees: 15, // Degrees card tilts
 	flipTime: 400, // Length of card flip animation 
@@ -21,14 +22,19 @@ var fc = {
 		}
 	},
 
-	// FlashCard class
+	// FlashCard constructor
 	FlashCard: function(functions) {
 		this.functions = functions;
 	},
 
-	// Stack class for flashcards
+	// Stack constructor
 	Stack: function(stack) {
-		this.isFaceup = true; // Indicates if card is face up
+		this.isFaceup = true; // Card is face up
+		this.touchEnabled = false; // Swiping
+		this.tiltEnabled = false; // Tilt flip indication
+		this.dragEnabled = false; // Mouse dragging
+		this.keysEnabled = false; // Arrow keys
+		this.clickEnabled = false; // Mouse clicking
 
 		// Set front and back of flashcard
 		this.front = document.createElement('canvas');
@@ -43,7 +49,6 @@ var fc = {
 		with (this.card) {
 			classList.add('fc_card');
 			classList.add('fc_faceup');
-			dataset.stackId = stack.getAttribute('id');
 			appendChild(this.front);
 			appendChild(this.back);
 		}
@@ -83,141 +88,158 @@ var fc = {
 		}
 	},
 
+	enableSwiping: function(swipeStacks) {
+		if (!swipeStacks) swipeStacks = fc.keys;
+
+		for (var s in swipeStacks) {
+			var curStack = fc.stacks[swipeStacks[s]];
+			curStack.enableSwiping();
+		}
+	},
+
+	enableDragging: function(dragStacks) {
+		if (!dragStacks) dragStacks = fc.keys;
+
+		for (var s in dragStacks) {
+			var curStack = fc.stacks[dragStacks[s]];
+			curStack.dragEnabled = true;
+			curStack.enableDragging();
+		}
+
+		// MouseUp
+		window.addEventListener('mouseup', function(e) {
+			if (fc.clickedCard) {
+				e.changedTouches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+				fc.clickedCard.touchend(e);
+			}
+			fc.clickedCard = false;
+		});
+	},
+
+	enableTilting: function(tiltStacks) {
+		if (!tiltStacks) tiltStacks = fc.keys;
+
+		for (var s in tiltStacks) {
+			var curStack = fc.stacks[tiltStacks[s]];
+			curStack.tiltEnabled = true;
+
+			// Touchmove
+			if (curStack.touchEnabled) {
+				window.addEventListener('touchmove', function(e) {
+					curStack.touchmove(e);
+				});
+			}
+
+			// Mousemove
+			if (curStack.dragEnabled) {
+				window.addEventListener('mousemove', function(e) {
+					if (fc.clickedCard) {
+						e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+						fc.clickedCard.touchmove(e);
+					}
+				});
+			}
+		}
+	},
+
+	enableArrowKeys: function(arrowStack) {
+		var curStack = fc.stacks[arrowStack ? arrowStack:fc.keys[0]];
+		curStack.keysEnabled = true;
+
+		window.addEventListener('keydown', function(e) {
+			if (e.which >= 37 && e.which <= 40)
+				curStack.moveCard(e.which - 37);
+		}, false);
+	},
+
+	enableClicking: function(clickStacks) {
+		if (!clickStacks) clickStacks = fc.keys;
+
+		for (var s in clickStacks) {
+			var curStack = fc.stacks[clickStacks[s]];
+			curStack.enableClicking();
+		}
+	},
+
+	// Create flashcard stacks
 	init: function(objectStacks) {
-		// Get layout engine info
-		var LE = 'webkitTransform' in document.body.style ?  'webkit' :'MozTransform' in document.body.style ?  'Moz':'';
-		// Check for flip effect support
-		var canAnimateFlip = ((LE === '' ? 'b':LE + 'B') + 'ackfaceVisibility') in document.body.style;
-		// Check for touch event support
-		var canBeSwiped = 'ontouchstart' in window;
-
 		// Setup Flashcard elements
-		var stacks = document.getElementsByClassName('fc_stack');
-
-		for (var i = 0; i < stacks.length; i++) {
-			var tmp_flashcard = new fc.Stack(stacks[i]);
-			fc.stacks[stacks[i].getAttribute('id')] = tmp_flashcard;
+		var stackElements = document.getElementsByClassName('fc_stack');
+		for (var i = 0; i < stackElements.length; i++) {
+			var tmp_flashcard = new fc.Stack(stackElements[i]);
+			fc.stacks[stackElements[i].getAttribute('id')] = tmp_flashcard;
 		}
 
 		// Resize flashcards
-		window.addEventListener('resize', fc.resize);
 		fc.resize();
+		window.addEventListener('resize', fc.resize);
+
+		// Get layout engine info
+		var LE = 'webkitTransform' in document.body.style ?  'webkit' :'MozTransform' in document.body.style ?  'Moz':'';
+		// Check for flip effect support
+		fc.animationIsSupported = ((LE === '' ? 'b':LE + 'B') + 'ackfaceVisibility') in document.body.style;
+
 
 		// Load parameter objects
 		for (var key in objectStacks) {
+			fc.keys.push(key);
 			for (var o in objectStacks[key]) {
 				fc.stacks[key].push(new fc.FlashCard(objectStacks[key][o]));
 			}
 		}
 
 		// If 3d animations are supported
-		if (canAnimateFlip) {
-			fc.Stack.prototype.alterRotation = function(degrees, tilt) {
-				this.card.style.transform = 'rotateY(' + degrees + 'deg)';
-			}
-
+		if (fc.animationIsSupported) {
 			// Flip flash card over
 			fc.Stack.prototype.flipCard = function(direction) {
-				var card = this.card
+				if (!this.animating) {
+					this.animating = true;
+					var thisStack = this
 
-				if (this.isFaceup) {
-					this.isFaceup = false;
-					var t1 = setTimeout(function() {
-						card.classList.add('fc_facedown');
-						card.classList.remove('fc_faceup');
-					}, fc.flipTime);
-				}
-				else {
-					this.isFaceup = true;
-					var t1 = setTimeout(function() {
-						card.classList.add('fc_faceup');
-						card.classList.remove('fc_facedown');
-					}, fc.flipTime);
-				}
+					if (this.isFaceup) {
+						this.isFaceup = false;
+						var t1 = setTimeout(function() {
+							thisStack.card.classList.add('fc_facedown');
+							thisStack.card.classList.remove('fc_faceup');
+						}, fc.flipTime);
+					}
+					else {
+						this.isFaceup = true;
+						var t1 = setTimeout(function() {
+							thisStack.card.classList.add('fc_faceup');
+							thisStack.card.classList.remove('fc_facedown');
+						}, fc.flipTime);
+					}
 
-				if (direction == fc.DIRECTION.LEFT) {
-					card.classList.add('fc_flipLeft');
-					var t2 = setTimeout(function() {card.classList.remove('fc_flipLeft')}, fc.flipTime);
-				}
-				else {
-					card.classList.add('fc_flipRight');
-					var t2 = setTimeout(function() {card.classList.remove('fc_flipRight')}, fc.flipTime);
+					if (direction == fc.DIRECTION.LEFT) {
+						thisStack.card.classList.add('fc_flipLeft');
+						var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_flipLeft'); ; thisStack.animating = false;}, fc.flipTime);
+					}
+					else {
+						thisStack.card.classList.add('fc_flipRight');
+						var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_flipRight'); thisStack.animating = false;}, fc.flipTime);
+					}
 				}
 			} 
 
 			// Change to adjacent card
 			fc.Stack.prototype.changeCard = function(direction) {
-				var cur = this;
-				this.alterRotation(this.degreesFlipped);
-				switch (direction) {
-					case fc.DIRECTION.UP:
-						this.card.classList.add('fc_moveUp');
-						var t1 = setTimeout(function() {cur.showNextCard(cur)}, fc.changeHalf);
-						var t2 = setTimeout(function() {cur.card.classList.remove('fc_moveUp');}, fc.changeTime);
-						break;
-					default:
-						this.card.classList.add('fc_moveDown');
-						var t1 = setTimeout(function() {cur.showPrevCard(cur)}, fc.changeHalf);
-						var t2 = setTimeout(function() {cur.card.classList.remove('fc_moveDown');}, fc.changeTime);
-						break;
-				}
-			}
-
-			// TouchMove
-			fc.Stack.prototype.touchmove = function(e) {
-				if (this.touchX != null && this.touchY != null) {
-					e.preventDefault();
-
-					var card = this.card;
-					var curX = e.touches[0].pageX;
-					var curY = e.touches[0].pageY;
-					var dist = Math.max(Math.abs(curX - this.touchX), Math.abs(curY - this.touchY));
-
-					// If length of swipe is long enough
-					if (dist > this.swipeDist) {
-						switch (fc.swipeDirection(this.touchX, this.touchY, curX, curY)) {
-							case fc.DIRECTION.LEFT:
-								card.classList.remove('fc_tiltRight');
-								card.classList.add('fc_tiltLeft');
-								break;
-							case fc.DIRECTION.RIGHT:
-								card.classList.remove('fc_tiltLeft');
-								card.classList.add('fc_tiltRight');
-								break;
-							default:
-								card.classList.remove('fc_tiltLeft');
-								card.classList.remove('fc_tiltRight');
-						}
-					}
-					else {
-						card.classList.remove('fc_tiltLeft');
-						card.classList.remove('fc_tiltRight');
+				if (!this.animating) {
+					this.animating = true;
+					var thisStack = this;
+					switch (direction) {
+						case fc.DIRECTION.UP:
+							this.card.classList.add('fc_moveUp');
+							var t1 = setTimeout(function() {thisStack.showNextCard()}, fc.changeHalf);
+							var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_moveUp'); thisStack.animating = false;}, fc.changeTime);
+							break;
+						default:
+							this.card.classList.add('fc_moveDown');
+							var t1 = setTimeout(function() {thisStack.showPrevCard(thisStack)}, fc.changeHalf);
+							var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_moveDown'); thisStack.animating = false;}, fc.changeTime);
+							break;
 					}
 				}
-			}
-
-			if (canBeSwiped) {
-				for (var key in fc.stacks) {
-					// Touchmove
-					fc.stacks[key].card.addEventListener('touchmove', function(e) {
-						fc.stacks[this.dataset.stackId].touchmove(e);
-					});
-				}
-			}
-			else {
-				for (var key in fc.stacks) {
-					// Mousemove
-					fc.stacks[key].card.addEventListener('mousemove', function(e) {
-						if (fc.clickedCard) {
-							e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-							fc.clickedCard.touchmove(e);
-						}
-					});
-				}
-			}
-
-			for (var key in fc.stacks) {
-				fc.stacks[key].degreesFlipped = 3600000;
 			}
 		}
 		else { // If 3d animations are not supported
@@ -235,44 +257,10 @@ var fc = {
 			// Change to adjacent card
 			fc.Stack.prototype.changeCard = function(direction) {
 				if (direction === fc.DIRECTION.UP)
-					this.showNextCard(this);
+					this.showNextCard();
 				else
-					this.showPrevCard(this);
+					this.showPrevCard();
 			}
-		}
-
-		// If touchscreen
-		if (canBeSwiped) {
-			for (var key in fc.stacks) {
-				// Touchstart
-				fc.stacks[key].card.addEventListener('touchstart', function(e) {
-					fc.stacks[this.dataset.stackId].touchstart(e);
-				});
-
-				// Touchend
-				fc.stacks[key].card.addEventListener('touchend', function(e) {
-					fc.stacks[this.dataset.stackId].touchend(e);
-				});
-			}
-		}
-		else {
-			for (var key in fc.stacks) {
-				// MouseDown
-				fc.stacks[key].card.addEventListener('mousedown', function(e) {
-					fc.clickedCard = fc.stacks[this.dataset.stackId];
-					e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-					fc.clickedCard.touchstart(e);
-				});
-			}
-
-				// MouseUp
-				window.addEventListener('mouseup', function(e) {
-					if (fc.clickedCard) {
-						e.changedTouches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-						fc.clickedCard.touchend(e);
-					}
-					fc.clickedCard = false;
-				});
 		}
 	}
 }
@@ -339,8 +327,8 @@ fc.Stack.prototype.showPrevCard = function(thisStack) {
 	}
 }
 // Switch to, and draw, the next card
-fc.Stack.prototype.showNextCard = function(thisStack) {
-	with (thisStack) {
+fc.Stack.prototype.showNextCard = function() {
+	with (this) {
 		cur = (cur + 1) % fc_cards.length;
 		draw();
 	}
@@ -401,12 +389,70 @@ fc.Stack.prototype.touchend = function(e) {
 	this.resetTouchEvent();
 }
 
-// Allow arrow keys to control stack
-fc.Stack.prototype.enableKeys = function() {
-	var stack = this;
-	window.addEventListener('keydown', function(e) {
-		if (e.which >= 37 && e.which <= 40)
-			stack.moveCard(e.which - 37);
-	}, false);
+// Touchmove
+fc.Stack.prototype.touchmove = function(e) {
+	if (this.touchX != null && this.touchY != null) {
+		e.preventDefault();
+
+		var card = this.card;
+		var curX = e.touches[0].pageX;
+		var curY = e.touches[0].pageY;
+		var dist = Math.max(Math.abs(curX - this.touchX), Math.abs(curY - this.touchY));
+
+		// If length of swipe is long enough
+		if (dist > this.swipeDist) {
+			switch (fc.swipeDirection(this.touchX, this.touchY, curX, curY)) {
+				case fc.DIRECTION.LEFT:
+					card.classList.remove('fc_tiltRight');
+					card.classList.add('fc_tiltLeft');
+					break;
+				case fc.DIRECTION.RIGHT:
+					card.classList.remove('fc_tiltLeft');
+					card.classList.add('fc_tiltRight');
+					break;
+				default:
+					card.classList.remove('fc_tiltLeft');
+					card.classList.remove('fc_tiltRight');
+			}
+		}
+		else {
+			card.classList.remove('fc_tiltLeft');
+			card.classList.remove('fc_tiltRight');
+		}
+	}
 }
 
+fc.Stack.prototype.enableSwiping = function() {
+	var thisStack = this;
+	thisStack.touchEnabled = true;
+
+	// Touchstart
+	thisStack.card.addEventListener('touchstart', function(e) {
+		thisStack.card.touchstart(e);
+	});
+
+	// Touchend
+	thisStack.card.addEventListener('touchend', function(e) {
+		thisStack.card.touchend(e);
+	});
+}
+
+fc.Stack.prototype.enableDragging = function() {
+	var thisStack = this;
+	thisStack.dragEnabled = true;
+
+	// MouseDown
+	thisStack.card.addEventListener('mousedown', function(e) {
+		fc.clickedCard = thisStack;
+		e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+		fc.clickedCard.touchstart(e);
+	});
+}
+
+fc.Stack.prototype.enableClicking = function() {
+	var thisStack = this;
+
+	thisStack.card.addEventListener('click', function(e) {
+		thisStack.flipCard();
+	});
+}
