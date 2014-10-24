@@ -15,20 +15,64 @@
 			html, body {height: 100%;}
 
 			body {
-				background-color: #888;
-				font-family: sans;
+				background-color: #d23823;
+				font-family: sans-serif;
 				margin: 0;
+				min-width: 420px;
 			}
 
 			.fc_stack {
 				height: 50%;
-				width: 100%;
-				padding: 50px;
+				width: 50%;
+				padding: 40px;
+				float: left;
 			}
+			#integers {
+				height: 100%;
+				float: right;
+			}
+			.fc_content {
+				color: #333;
+				line-height: 2em;
+				text-align: center;
+				padding: 10px;
+			}
+			.fc_content > span {
+				font-size: 1.5em;
+			}
+			.fc_content > p {
+				text-align: left;
+				line-height: 1.4em;
+				text-indent: 1ex;
+				font-size: 1.1em;
+				margin: 0;
+				padding: 0;
+			}
+			.one {background-color: #739ecb}
+			.two {background-color: #966FD6}
 		</style>
 	</head>
 	<body onload="init()">
+		 <div id="words" class="fc_stack">
+			<!-- First Card -->
+			<div class="fc_content one">
+				<span>First Card</span>
+			</div>
+			<div class="fc_content two">
+				<span>This is a &lt;span&gt; element.</span>
+			</div>
+
+			<!-- Second Card -->
+			<div class="fc_content one">
+				<p>This text is in a &lt;p&gt; element, and contains a total of fourteen words.</p>
+			</div>
+
+			<div class="fc_content two">
+				<span>Back</span>
+			</div>
+		 </div>
+
 		 <div id="integers" class="fc_stack"></div>
-		 <div id="colors" class="fc_stack" data-fc-width=50 data-fc-height=50></div>
+		 <div id="colors" class="fc_stack" data-fc-width="50" data-fc-height="50"></div>
 	</body>
 </html>

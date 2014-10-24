@@ -12,7 +12,7 @@ Integer.prototype.drawFront = function(ctx) {
 
 	// Number
 	ctx.fillStyle = '#333';
-	ctx.font = h + 'px sans';
+	ctx.font = h + 'px "Trebuchet MS", "Tahoma", sans-serif';
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
 	ctx.fillText(this.string, w, h);
@@ -46,7 +46,7 @@ Color.prototype.drawFront = function(ctx) {
 
 	// String
 	ctx.fillStyle = '#333';
-	ctx.font = w / 2 + 'px sans';
+	ctx.font = w / 2 + 'px serif';
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
 	ctx.fillText(this.color, w, h);
@@ -66,12 +66,12 @@ Color.prototype.drawBack = function(ctx) {
 
  function init() {
 	colors = [
-		new Color('red'),
-		new Color('orange'),
-		new Color('yellow'),
-		new Color('green'),
-		new Color('blue'),
-		new Color('purple')
+		new Color('Red'),
+		new Color('Orange'),
+		new Color('Yellow'),
+		new Color('Green'),
+		new Color('Blue'),
+		new Color('Purple')
 	]
 
 	integers = [
@@ -89,9 +89,9 @@ Color.prototype.drawBack = function(ctx) {
 	});
 	
 	fc.enableArrowKeys(); // Enable arrow keys
-	fc.enableScaling('colors'); // Enable scalable canvas
 	fc.enableClicking(); // Enable mouse dragging
 	fc.enableDragging(); // Enable mouse dragging
 	fc.enableTilting(); // Enable mouse dragging
 	fc.enableSwiping(); // Enable touchscreen swiping
+	fc.enableAll('colors'); // Enable scalable canvas
  }

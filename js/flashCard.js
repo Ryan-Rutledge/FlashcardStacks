@@ -23,12 +23,22 @@ var fc = {
 	},
 
 	// FlashCard constructor
-	FlashCard: function(functions) {
-		this.functions = functions;
+	FlashCard: function() {
+		if (arguments.length == 1) {
+			this.functions = arguments[0];
+		}
+		else {
+			this.sides = new Array(2);
+			this.sides[0] = arguments[0];
+			this.sides[1] = arguments[1];
+		}
 	},
 
 	// Stack constructor
 	Stack: function(stack) {
+		this.cur = 0; // Index of current card
+		this.fc_cards = []; // Empty stack of cards
+
 		this.isFaceup = true; // Card is face up
 		this.swipeDist = 1; // Minimum swipe distance required to flip card
 		this.touchEnabled = false; // Swiping
@@ -39,10 +49,20 @@ var fc = {
 		this.scalingEnabled = false; // Canvas resize with flashcard
 
 		// Set front and back of flashcard
-		this.front = document.createElement('canvas');
+		var elements = stack.getElementsByClassName('fc_content');
+		if (elements.length) {
+			this.usingCanvas = false;
+			this.front = document.createElement('div');
+			this.back = document.createElement('div');
+		}
+		else {
+			this.usingCanvas = true;
+			this.front = document.createElement('canvas');
+			this.back = document.createElement('canvas');
+		}
+
 		this.front.classList.add('fc_side');
 		this.front.classList.add('fc_front');
-		this.back = document.createElement('canvas');
 		this.back.classList.add('fc_side');
 		this.back.classList.add('fc_back');
 
@@ -69,10 +89,20 @@ var fc = {
 		// Append to parent
 		stack.appendChild(margin);
 
-		this.cur = 0; // Index of current card
-		this.fc_cards = []; // Empty stack of cards
-
 		this.resetTouchEvent();
+
+		if (!this.usingCanvas) {
+			count = elements.length;
+			for (var i = 0; i < count; i+=2) {
+				var front = stack.firstElementChild;
+				stack.removeChild(front);
+
+				var back = stack.firstElementChild;
+				stack.removeChild(back);
+
+				this.push(new fc.FlashCard(front, back));
+			}
+		}
 	},
 
 	// Resize all stacks
@@ -88,6 +118,8 @@ var fc = {
 			var curStack = fc.stacks[stacks[s]];
 			curStack.enableSwiping();
 		}
+
+		return fc;
 	},
 
 	enableDragging: function() {
@@ -107,6 +139,8 @@ var fc = {
 			}
 			fc.clickedCard = false;
 		});
+
+		return fc;
 	},
 
 	enableTilting: function() {
@@ -133,6 +167,8 @@ var fc = {
 				});
 			}
 		}
+
+		return fc;
 	},
 
 	enableArrowKeys: function() {
@@ -146,6 +182,8 @@ var fc = {
 						curStack.moveCard(e.which - 37);
 					}
 			}, false);
+
+			return fc;
 	},
 
 	enableClicking: function() {
@@ -155,6 +193,8 @@ var fc = {
 			var curStack = fc.stacks[stacks[s]];
 			curStack.enableClicking();
 		}
+
+		return fc;
 	},
 
 	enableScaling: function() {
@@ -165,6 +205,24 @@ var fc = {
 			curStack.scalingEnabled = true;
 			curStack.resize();
 		}
+
+		return fc;
+	},
+
+	enableAll: function() {
+		var stacks = arguments.length ? arguments:fc.keys;
+
+		for (var s in stacks) {
+			fc.enableArrowKeys(stacks[s]); // Enable arrow keys
+			fc.enableScaling(stacks[s]); // Enable scalable canvas
+			fc.enableClicking(stacks[s]); // Enable mouse dragging
+			fc.enableDragging(stacks[s]); // Enable mouse dragging
+			fc.enableTilting(stacks[s]); // Enable mouse dragging
+			fc.enableSwiping(stacks[s]); // Enable touchscreen swiping
+		}
+
+		return fc;
+
 	},
 
 	// Create flashcard stacks
@@ -172,8 +230,9 @@ var fc = {
 		// Setup Flashcard elements
 		var stackElements = document.getElementsByClassName('fc_stack');
 		for (var i = 0; i < stackElements.length; i++) {
-			var tmp_flashcard = new fc.Stack(stackElements[i]);
-			fc.stacks[stackElements[i].getAttribute('id')] = tmp_flashcard;
+			fc.keys.push(stackElements[i].getAttribute('id'));
+			var newStack = new fc.Stack(stackElements[i]);
+			fc.stacks[fc.keys[i]] = newStack;
 		}
 
 		// Resize flashcards
@@ -188,10 +247,13 @@ var fc = {
 
 		// Load parameter objects
 		for (var key in objectStacks) {
-			fc.keys.push(key);
-			for (var o in objectStacks[key]) {
-				fc.stacks[key].push(new fc.FlashCard(objectStacks[key][o]));
-			}
+			if (fc.stacks[key].usingCanvas)
+				for (var o in objectStacks[key])
+					fc.stacks[key].push(new fc.FlashCard(objectStacks[key][o]));
+			else 
+				for (var o in objectStacks[key])
+					fc.stacks[key].fc_cars[o].functions = objectStacks[key][o];
+
 		}
 
 		// If 3d animations are supported
@@ -302,7 +364,14 @@ fc.Stack.prototype.push = function(flashcard) {
 	if (this.fc_cards.length <= 1) {
 		this.container.style.display = '';
 		this.resize();
-		this.draw();
+
+		if (this.usingCanvas) {
+			this.draw();
+		}
+		else {
+			this.front.appendChild(flashcard.sides[0]);
+			this.back.appendChild(flashcard.sides[1]);
+		}
 	}
 }
 
@@ -311,8 +380,18 @@ fc.Stack.prototype.pop = function() {
 	if (this.fc_cards.length <= 1) {
 		this.container.style.display = 'none';
 	}
-	this.keys();
+	this.keys.pop();
 	return this.fc_cards.pop();
+}
+
+// Loads content-based flashcard into stack
+fc.Stack.prototype.load = function() {
+	with (this) {
+		front.removeChild(front.firstElementChild);
+		back.removeChild(back.firstElementChild);
+		front.appendChild(fc_cards[cur].sides[0]);
+		back.appendChild(fc_cards[cur].sides[1]);
+	}
 }
 
 // Resize flashcards while maintaining aspect ratio
@@ -355,14 +434,20 @@ fc.Stack.prototype.setSize = function(x, y) {
 fc.Stack.prototype.showPrevCard = function(thisStack) {
 	with (thisStack) {
 		cur = (cur + fc_cards.length - 1) % fc_cards.length;
-		draw();
+		if (usingCanvas)
+			draw();
+		else
+			load();
 	}
 }
 // Switch to, and draw, the next card
 fc.Stack.prototype.showNextCard = function() {
 	with (this) {
 		cur = (cur + 1) % fc_cards.length;
-		draw();
+		if (usingCanvas)
+			draw();
+		else
+			load();
 	}
 }
 
@@ -383,10 +468,12 @@ fc.Stack.prototype.moveCard = function(direction) {
 // Draw front and back of current card
 fc.Stack.prototype.draw = function() {
 	with (this) {
-		if (fc_cards[cur].drawFront)
-			fc_cards[cur].drawFront(front.getContext('2d'));
-		if (fc_cards[cur].drawBack)
-			fc_cards[cur].drawBack(back.getContext('2d'));
+		if (fc_cards[cur].functions) {
+			if (fc_cards[cur].functions.drawFront)
+				fc_cards[cur].drawFront(front.getContext('2d'));
+			if (fc_cards[cur].functions.drawBack)
+				fc_cards[cur].drawBack(back.getContext('2d'));
+		}
 	}
 }
 
