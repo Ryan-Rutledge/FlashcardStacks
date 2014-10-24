@@ -59,6 +59,15 @@ Color.prototype.drawBack = function(ctx) {
 	ctx.fill();
 	ctx.closePath()
 }
+Color.prototype.onFlipDown = function(fc_stack) {
+	document.body.style.backgroundColor = this.color;
+}
+Color.prototype.onFlipUp = function(fc_stack) {
+	document.body.style.backgroundColor = '';
+}
+Color.prototype.onEnter = function(fc_stack) {
+	if (!fc_stack.isFaceUp) this.onFlipDown();
+}
 
 /******************************
  * Init function              *
@@ -66,9 +75,6 @@ Color.prototype.drawBack = function(ctx) {
 
  function init() {
 	colors = [
-		new Color('Red'),
-		new Color('Orange'),
-		new Color('Yellow'),
 		new Color('Green'),
 		new Color('Blue'),
 		new Color('Purple')

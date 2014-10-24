@@ -10,15 +10,15 @@ var fc = {
 	flipTime: 400, // Length of card flip animation 
 	changeTime: 500, // Length of card change animation
 	changeHalf: 250,
-	DIRECTION: {LEFT: 0, UP: 1, RIGHT: 2, DOWN: 3}, // Direction enum
+	MOVEMENT: {LEFT: 0, UP: 1, RIGHT: 2, DOWN: 3, ENTER: 4, LEAVE: 5}, // Direction enum
 
 	// Return direction of cursor/touch movement
 	swipeDirection: function(startX, startY, endX, endY) {
 		if (Math.abs(startX - endX) > Math.abs(startY - endY)) {
-			return (startX > endX) ? fc.DIRECTION.LEFT : fc.DIRECTION.RIGHT;
+			return (startX > endX) ? fc.MOVEMENT.LEFT : fc.MOVEMENT.RIGHT;
 		}
 		else {
-			return (startY > endY) ? fc.DIRECTION.UP: fc.DIRECTION.DOWN;
+			return (startY > endY) ? fc.MOVEMENT.UP: fc.MOVEMENT.DOWN;
 		}
 	},
 
@@ -39,7 +39,7 @@ var fc = {
 		this.cur = 0; // Index of current card
 		this.fc_cards = []; // Empty stack of cards
 
-		this.isFaceup = true; // Card is face up
+		this.isFaceUp = true; // Card is face up
 		this.swipeDist = 1; // Minimum swipe distance required to flip card
 		this.touchEnabled = false; // Swiping
 		this.tiltEnabled = false; // Tilt flip indication
@@ -261,22 +261,23 @@ var fc = {
 					this.animating = true;
 					var thisStack = this
 
-					if (this.isFaceup) {
-						this.isFaceup = false;
+					if (this.isFaceUp) {
+						this.isFaceUp = false;
 						var t1 = setTimeout(function() {
 							thisStack.card.classList.add('fc_facedown');
 							thisStack.card.classList.remove('fc_faceup');
 						}, fc.flipTime);
+
 					}
 					else {
-						this.isFaceup = true;
+						this.isFaceUp = true;
 						var t1 = setTimeout(function() {
 							thisStack.card.classList.add('fc_faceup');
 							thisStack.card.classList.remove('fc_facedown');
 						}, fc.flipTime);
 					}
 
-					if (direction == fc.DIRECTION.LEFT) {
+					if (direction == fc.MOVEMENT.LEFT) {
 						thisStack.card.classList.add('fc_flipLeft');
 						var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_flipLeft'); ; thisStack.animating = false;}, fc.flipTime);
 					}
@@ -284,27 +285,39 @@ var fc = {
 						thisStack.card.classList.add('fc_flipRight');
 						var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_flipRight'); thisStack.animating = false;}, fc.flipTime);
 					}
+
+					thisStack.fc_cards[thisStack.cur].onFlip(thisStack, direction);
 				}
 			} 
 
 			// Change to adjacent card
 			fc.Stack.prototype.changeCard = function(direction) {
 				if (!this.animating) {
+
 					this.animating = true;
 					var thisStack = this;
 
+					thisStack.fc_cards[thisStack.cur].onChange(thisStack, fc.MOVEMENT.LEAVE);
+
 					switch (direction) {
-						case fc.DIRECTION.UP:
-							this.card.classList.add('fc_moveUp');
-							var t1 = setTimeout(function() {thisStack.showNextCard()}, fc.changeHalf);
+						case fc.MOVEMENT.UP:
+							thisStack.card.classList.add('fc_moveUp');
+							var t1 = setTimeout(function() {
+								thisStack.showNextCard();
+								thisStack.fc_cards[thisStack.cur].onChange(thisStack, fc.MOVEMENT.ENTER);
+							}, fc.changeHalf);
 							var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_moveUp'); thisStack.animating = false;}, fc.changeTime);
 							break;
 						default:
-							this.card.classList.add('fc_moveDown');
-							var t1 = setTimeout(function() {thisStack.showPrevCard(thisStack)}, fc.changeHalf);
+							thisStack.card.classList.add('fc_moveDown');
+							var t1 = setTimeout(function() {
+								thisStack.showPrevCard(thisStack);
+								thisStack.fc_cards[thisStack.cur].onChange(thisStack, fc.MOVEMENT.ENTER);
+							}, fc.changeHalf);
 							var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_moveDown'); thisStack.animating = false;}, fc.changeTime);
 							break;
 					}
+
 				}
 			}
 		}
@@ -317,12 +330,13 @@ var fc = {
 			fc.Stack.prototype.flipCard = function(direction) {
 				this.card.classList.toggle('fc_facedown');
 				this.card.classList.toggle('fc_faceup');
-				this.isFaceup = !this.isFaceup;
+				this.isFaceUp = !this.isFaceUp;
+				this.card.onFlip(this, direction);
 			} 
 
 			// Change to adjacent card
 			fc.Stack.prototype.changeCard = function(direction) {
-				if (direction === fc.DIRECTION.UP)
+				if (direction === fc.MOVEMENT.UP)
 					this.showNextCard();
 				else
 					this.showPrevCard();
@@ -335,6 +349,16 @@ var fc = {
  * FlashCard class methods    *
  ******************************/
 
+fc.FlashCard.prototype.draw = function(front, back) {
+	with (this) {
+		if (functions) {
+			if (functions.drawFront)
+				drawFront(front.getContext('2d'));
+			if (functions.drawBack)
+				drawBack(back.getContext('2d'));
+		}
+	}
+}
 // Called before draw functions
 fc.FlashCard.prototype.preDraw = function(ctx) {
 	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -350,6 +374,46 @@ fc.FlashCard.prototype.drawBack = function(ctx) {
 	this.functions.drawBack(ctx);
 }
 
+// Called every time card is flipped
+fc.FlashCard.prototype.onFlip = function(stack, direction) {
+	if (this.functions) {
+		if (direction === fc.MOVEMENT.RIGHT) {
+			if (this.functions.onFlipRight)
+				this.functions.onFlipRight(stack);
+		}
+		else if (this.functions.onFlipLeft) {
+				this.functions.onFlipLeft(stack);
+		}
+
+		if (stack.isFaceUp) {
+			if (this.functions.onFlipUp) {
+				this.functions.onFlipUp(stack);
+			}
+		}
+		else if (this.functions.onFlipDown) {
+			this.functions.onFlipDown(stack);
+		}
+
+		if (this.functions.onFlip)
+			this.functions.onFlip(stack);
+	}
+}
+
+// Called every time card is changed
+fc.FlashCard.prototype.onChange = function(stack, direction) {
+	if (this.functions) {
+		if (direction === fc.MOVEMENT.LEAVE) {
+			if (this.functions.onLeave)
+				this.functions.onLeave(stack);
+		}
+		else if (this.functions.onEnter) {
+			this.functions.onEnter(stack);
+
+			if (this.functions.onChange)
+				this.functions.onChange(stack);
+		}
+	}
+}
 /******************************
  * Stack class methods        *
  ******************************/
@@ -397,7 +461,7 @@ fc.Stack.prototype.resize = function() {
 		var h = container.clientHeight;
 		var w = container.clientWidth;
 
-		if (h*1.5 > w)
+		if (h*aspectRatio > w)
 			h = w/aspectRatio;
 		else
 			w = h*aspectRatio;
@@ -451,8 +515,8 @@ fc.Stack.prototype.showNextCard = function() {
 // Choose action based on direction
 fc.Stack.prototype.moveCard = function(direction) {
 	switch (direction) {
-		case fc.DIRECTION.LEFT:
-		case fc.DIRECTION.RIGHT:
+		case fc.MOVEMENT.LEFT:
+		case fc.MOVEMENT.RIGHT:
 			this.flipCard(direction);
 			if (this.fc_cards[this.cur].flip)
 				this.fc_cards[this.cur].flip(direction);
@@ -466,14 +530,7 @@ fc.Stack.prototype.moveCard = function(direction) {
 
 // Draw front and back of current card
 fc.Stack.prototype.draw = function() {
-	with (this) {
-		if (fc_cards[cur].functions) {
-			if (fc_cards[cur].functions.drawFront)
-				fc_cards[cur].drawFront(front.getContext('2d'));
-			if (fc_cards[cur].functions.drawBack)
-				fc_cards[cur].drawBack(back.getContext('2d'));
-		}
-	}
+	this.fc_cards[this.cur].draw(this.front, this.back);
 }
 
 // Touch Reset
@@ -520,11 +577,11 @@ fc.Stack.prototype.touchmove = function(e) {
 		// If length of swipe is long enough
 		if (dist > this.swipeDist) {
 			switch (fc.swipeDirection(this.touchX, this.touchY, curX, curY)) {
-				case fc.DIRECTION.LEFT:
+				case fc.MOVEMENT.LEFT:
 					card.classList.remove('fc_tiltRight');
 					card.classList.add('fc_tiltLeft');
 					break;
-				case fc.DIRECTION.RIGHT:
+				case fc.MOVEMENT.RIGHT:
 					card.classList.remove('fc_tiltLeft');
 					card.classList.add('fc_tiltRight');
 					break;
