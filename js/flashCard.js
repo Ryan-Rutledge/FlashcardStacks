@@ -119,6 +119,14 @@ var fc = {
 			curStack.enableSwiping();
 		}
 
+		// Touchend
+		window.addEventListener('touchend', function(e) {
+			if (fc.touchedStack) {
+				fc.touchedStack.touchend(e);
+			}
+			fc.touchedStack = false;
+		});
+
 		return fc;
 	},
 
@@ -133,11 +141,11 @@ var fc = {
 
 		// MouseUp
 		window.addEventListener('mouseup', function(e) {
-			if (fc.clickedStack) {
+			if (fc.touchedStack) {
 				e.changedTouches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-				fc.clickedStack.touchend(e);
+				fc.touchedStack.touchend(e);
 			}
-			fc.clickedStack = false;
+			fc.touchedStack = false;
 		});
 
 		return fc;
@@ -147,22 +155,22 @@ var fc = {
 		var stacks = arguments.length ? arguments:fc.keys;
 
 		for (var s in stacks) {
-			var curStack = fc.stacks[stacks[s]];
-			curStack.tiltEnabled = true;
-
-			// Touchmove
-			if (curStack.touchEnabled) {
-				window.addEventListener('touchmove', function(e) {
-					curStack.touchmove(e);
-				});
-			}
+			fc.stacks[stacks[s]].tiltEnabled = true;
 		}
+
+		// Touchmove
+		window.addEventListener('touchmove', function(e) {
+			if (fc.touchedStack && fc.touchedStack.tiltEnabled) {
+				e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+				fc.touchedStack.touchmove(e);
+			}
+		});
 
 		// Mousemove
 		window.addEventListener('mousemove', function(e) {
-			if (fc.clickedStack && fc.clickedStack.tiltEnabled) {
+			if (fc.touchedStack && fc.touchedStack.tiltEnabled) {
 				e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-				fc.clickedStack.touchmove(e);
+				fc.touchedStack.touchmove(e);
 			}
 		});
 
@@ -603,12 +611,14 @@ fc.Stack.prototype.enableSwiping = function() {
 
 	// Touchstart
 	thisStack.card.addEventListener('touchstart', function(e) {
-		thisStack.card.touchstart(e);
+		fc.touchedStack = thisStack;
+		thisStack.touchstart(e);
+		fc.touchedStack.touchstart(e);
 	});
 
 	// Touchend
 	thisStack.card.addEventListener('touchend', function(e) {
-		thisStack.card.touchend(e);
+		thisStack.touchend(e);
 	});
 }
 
@@ -618,9 +628,9 @@ fc.Stack.prototype.enableDragging = function() {
 
 	// MouseDown
 	thisStack.card.addEventListener('mousedown', function(e) {
-		fc.clickedStack = thisStack;
+		fc.touchedStack = thisStack;
 		e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-		fc.clickedStack.touchstart(e);
+		fc.touchedStack.touchstart(e);
 	});
 }
 
