@@ -86,7 +86,7 @@
 		</div>
 
 		<!-- colors stack -->
-		<div id="colors" class="fc_container" data-fc-width="50" data-fc-height="50" data-fc-scale>
+		<div id="colors" class="fc_container" data-fc-width="50" data-fc-height="50" data-fc-drag data-fc-click data-fc-swipe data-fc-scale>
 			<div class="note">Dragging, clicking, and swiping</div>
 		</div>
 
@@ -94,9 +94,11 @@
 		<!-- JavaScript -->
 		<script>
 			function focusInput(stack) {
-				say = document.getElementsByName('say')[0]
-				say.value = '';
-				say.focus();
+				if (stack.isFaceUp) {
+					say = document.getElementsByName('say')[0]
+					say.value = '';
+					say.focus();
+				}
 			}
 			function changeText(stack) {
 				document.getElementById('backSpan').innerHTML = document.getElementsByName('say')[0].value; 
