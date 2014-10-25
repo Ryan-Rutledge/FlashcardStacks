@@ -1,16 +1,10 @@
-.fc_stack {
+.fc_container {
 	overflow: hidden;
 	box-sizing: border-box;
-
-	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
+	padding: 1%;
 }
 
-.fc_stack > div {
+.fc_holder {
 	width: 100%;
 	height: 100%;
 	position: relative;
@@ -22,15 +16,11 @@
 
 .fc_card {
 	position: absolute;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	left: 0;
+	top: 0; right: 0; bottom: 0; left: 0;
 	margin: auto;
 
 	width: 600px;
 	height: 400px;
-	cursor: pointer;
 
 	transform-style: preserve-3d;
 	-webkit-transform-style: preserve-3d;
@@ -47,6 +37,14 @@
 	-webkit-backface-visibility: hidden;
 	-ms-backface-visibility: hidden;
 	backface-visibility: hidden;
+}
+canvas.fc_side {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 .fc_side, .fc_content {
@@ -67,12 +65,7 @@
 	-webkit-transition: -webkit-transform 0.4s ease-out;
 	transition: transform 0.5s ease-out;
 }
-.fc_back {
-	-webkit-transform: rotateY(180deg);
-	-ms-transform: rotateY(180deg);
-	transform: rotateY(180deg);
-}
-.fc_facedown, .fc_faceup.fc_flipLeft {
+.fc_back, .fc_facedown, .fc_faceup.fc_flipLeft {
 	-webkit-transform: rotateY(180deg);
 	-ms-transform: rotateY(180deg);
 	transform: rotateY(180deg);
@@ -110,16 +103,21 @@
 .fc_facedown.fc_tiltLeft {
 	-webkit-transform: rotateY(160deg);
 	-ms-transform: rotateY(160deg);
-	transform: rotateY(1650eg);
+	transform: rotateY(160deg);
 }
 
-.fc_noAnimation > .fc_back, .fc_flipLeft, .fc_flipRight {
+.fc_noAnimation, .fc_noAnimation > .fc_back {
 	-webkit-transform: none;
 	-moz-transform: none;
 	-ms-transform: none;
 	transform: none;
 }
-.fc_noAnimation > .fc_back{
+.fc_noAnimation > .fc_side {
+	-webkit-backface-visibility: visible;
+	-ms-backface-visibility: visible;
+	backface-visibility: visible;
+}
+.fc_noAnimation > .fc_back {
 	display: none;
 }
 .fc_noAnimation.fc_facedown > .fc_back {

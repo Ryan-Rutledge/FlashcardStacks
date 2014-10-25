@@ -33,41 +33,54 @@ var fc = {
 			this.functions = arguments[0];
 		}
 		else {
+			this.functions = {};
 			this.sides = arguments;
 		}
 	},
 
 	// Stack constructor
-	Stack: function(stack) {
-		this.id = stack.getAttribute('id');
+	Stack: function(container) {
+		this.container = container;
 		this.cur = 0; // Index of current card
 		this.fc_cards = []; // Empty stack of cards
 		this.swipeDist = 1;
 		this.isFaceUp = true;
 
 		// Check which listeners are enabled
-		if (stack.dataset.fcAll === '') {
+		if (container.dataset.fcAll === '') {
 			this.tiltEnabled = this.dragEnabled = this.clickEnabled = this.swipeEnabled = this.arrowkeysEnabled = true;
 		}
 		else {
-			this.tiltEnabled = stack.dataset.fcTilt === '';
-			this.dragEnabled = stack.dataset.fcDrag === '';
-			this.clickEnabled = stack.dataset.fcClick === '';
-			this.swipeEnabled = stack.dataset.fcSwipe === '';
-			this.arrowkeysEnabled = stack.dataset.fcArrowkeys === '';
+			this.tiltEnabled = container.dataset.fcTilt === '';
+			this.dragEnabled = container.dataset.fcDrag === '';
+			this.clickEnabled = container.dataset.fcClick === '';
+			this.swipeEnabled = container.dataset.fcSwipe === '';
+			this.arrowkeysEnabled = container.dataset.fcArrowkeys === '';
 		}
 
-		// Add to appropriate stacks
+		// Add to this stack appropriate arrays
 		if (this.tiltEnabled) fc.tiltStacks.push(this);
 		if (this.dragEnabled) fc.dragStacks.push(this);
 		if (this.clickEnabled) fc.clickStacks.push(this);
 		if (this.swipeEnabled) fc.swipeStacks.push(this);
 		if (this.arrowkeysEnabled) fc.arrowkeyStacks.push(this);
 
-		this.scalingEnabled = stack.dataset.fcScale === '';
+		this.scalingEnabled = container.dataset.fcScale === '';
+
+
+		// Assign stack functions
+		this.functions = {};
+		this.functions.onChange = container.dataset.fcChange ? window[container.dataset.fcChange]:null;
+		this.functions.onEnter = container.dataset.fcEnter ? window[container.dataset.fcEnter]:null;
+		this.functions.onLeave = container.dataset.fcLeave ? window[container.dataset.fcLeave]:null;
+		this.functions.onFlip = container.dataset.fcFlip ? window[container.dataset.fcFlip]:null;
+		this.functions.onFlipUp = container.dataset.fcFlipup ? window[container.dataset.fcFlipup]:null;
+		this.functions.onFlipDown = container.dataset.fcFlipdown ? window[container.dataset.fcFlipdown]:null;
+		this.functions.onFlipRight = container.dataset.fcFlipright ? window[container.dataset.fcFlipright]:null;
+		this.functions.onFlipLeft = container.dataset.fcFlipleft ? window[container.dataset.fcFlipleft]:null;
 
 		// Set front and back of flashcard
-		var elements = stack.getElementsByClassName('fc_content');
+		var elements = container.getElementsByClassName('fc_content');
 		if (elements.length) {
 			this.usingCanvas = false;
 			this.front = document.createElement('div');
@@ -85,8 +98,8 @@ var fc = {
 		this.back.classList.add('fc_back');
 
 		// Set dimensions
-		this.front.height = this.back.height = stack.dataset.fcHeight ? stack.dataset.fcHeight:400;
-		this.front.width = this.back.width = stack.dataset.fcWidth ? stack.dataset.fcWidth:600;
+		this.front.height = this.back.height = container.dataset.fcHeight ? container.dataset.fcHeight:400;
+		this.front.width = this.back.width = container.dataset.fcWidth ? container.dataset.fcWidth:600;
 		this.aspectRatio = this.front.width / this.front.height;
 
 		// Set card
@@ -99,26 +112,38 @@ var fc = {
 		}
 
 		// Create inner element for margins
-		var margin = document.createElement('div');
-		margin.appendChild(this.card);
-		margin.style.display = 'none';
-		this.container = margin;
+		this.holder = document.createElement('div');
+		this.holder.appendChild(this.card);
+		this.holder.style.display = 'none';
+		this.holder.classList.add('fc_holder');
 
 		// Append to parent
-		stack.appendChild(margin);
+		container.appendChild(this.holder);
 
 		this.resetTouchEvent();
 
 		if (!this.usingCanvas) {
-			count = elements.length;
-			for (var i = 0; i < count; i+=2) {
-				var front = stack.firstElementChild;
-				stack.removeChild(front);
+			for (var i = 0; i < elements.length; i+=2) {
+				var front = container.firstElementChild;
+				container.removeChild(front);
 
-				var back = stack.firstElementChild;
-				stack.removeChild(back);
+				var back = container.firstElementChild;
+				container.removeChild(back);
+				
+				var flashcard = new fc.FlashCard(front, back)
 
-				this.push(new fc.FlashCard(front, back));
+				// Assign flashcard functions
+
+				this.push(flashcard);
+
+				flashcard.functions.onChange = front.dataset.fcChange ? window[front.dataset.fcChange]:null;
+				flashcard.functions.onEnter = front.dataset.fcEnter ? window[front.dataset.fcEnter]:null;
+				flashcard.functions.onLeave = front.dataset.fcLeave ? window[front.dataset.fcLeave]:null;
+				flashcard.functions.onFlip = front.dataset.fcFlip ? window[front.dataset.fcFlip]:null;
+				flashcard.functions.onFlipUp = front.dataset.fcFlipup ? window[front.dataset.fcFlipup]:null;
+				flashcard.functions.onFlipDown = front.dataset.fcFlipdown ? window[front.dataset.fcFlipdown]:null;
+				flashcard.functions.onFlipRight = front.dataset.fcFlipright ? window[front.dataset.fcFlipright]:null;
+				flashcard.functions.onFlipLeft = front.dataset.fcFlipleft ? window[front.dataset.fcFlipleft]:null;
 			}
 		}
 	},
@@ -182,9 +207,8 @@ var fc = {
 	arrowkeyListener: function(stacks) {
 			window.addEventListener('keydown', function(e) {
 				if (e.which >= 37 && e.which <= 40)
-					for (var s in stacks) {
+					for (var s in stacks)
 						stacks[s].moveCard(e.which - 37);
-					}
 			}, false);
 	},
 
@@ -203,10 +227,10 @@ var fc = {
 	// Create flashcard stacks
 	init: function(objectStacks) {
 		// Setup Flashcard elements
-		var stackElements = document.getElementsByClassName('fc_stack');
-		for (var i = 0; i < stackElements.length; i++) {
-			fc.keys.push(stackElements[i].getAttribute('id'));
-			var newStack = new fc.Stack(stackElements[i]);
+		var stackContainers = document.getElementsByClassName('fc_container');
+		for (var i = 0; i < stackContainers.length; i++) {
+			fc.keys.push(stackContainers[i].getAttribute('id'));
+			var newStack = new fc.Stack(stackContainers[i]);
 			fc.stacks[fc.keys[i]] = newStack;
 		}
 
@@ -264,7 +288,7 @@ var fc = {
 						var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_flipRight'); thisStack.animating = false;}, fc.flipTime);
 					}
 
-					thisStack.fc_cards[thisStack.cur].onFlip(thisStack, direction);
+					thisStack.onFlip(direction);
 				}
 			} 
 
@@ -275,14 +299,14 @@ var fc = {
 					this.animating = true;
 					var thisStack = this;
 
-					thisStack.fc_cards[thisStack.cur].onChange(thisStack, fc.MOVEMENT.LEAVE);
+					thisStack.onChange(fc.MOVEMENT.LEAVE);
 
 					switch (direction) {
 						case fc.MOVEMENT.UP:
 							thisStack.card.classList.add('fc_moveUp');
 							var t1 = setTimeout(function() {
 								thisStack.showNextCard();
-								thisStack.fc_cards[thisStack.cur].onChange(thisStack, fc.MOVEMENT.ENTER);
+								thisStack.onChange(fc.MOVEMENT.ENTER);
 							}, fc.changeHalf);
 							var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_moveUp'); thisStack.animating = false;}, fc.changeTime);
 							break;
@@ -290,7 +314,7 @@ var fc = {
 							thisStack.card.classList.add('fc_moveDown');
 							var t1 = setTimeout(function() {
 								thisStack.showPrevCard(thisStack);
-								thisStack.fc_cards[thisStack.cur].onChange(thisStack, fc.MOVEMENT.ENTER);
+								thisStack.onChange(fc.MOVEMENT.ENTER);
 							}, fc.changeHalf);
 							var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_moveDown'); thisStack.animating = false;}, fc.changeTime);
 							break;
@@ -298,6 +322,8 @@ var fc = {
 
 				}
 			}
+
+			if (fc.tiltStacks.length) fc.tiltListener();
 		}
 		else { // If 3d animations are not supported
 			for (var key in fc.stacks) {
@@ -309,19 +335,22 @@ var fc = {
 				this.card.classList.toggle('fc_facedown');
 				this.card.classList.toggle('fc_faceup');
 				this.isFaceUp = !this.isFaceUp;
-				this.card.onFlip(this, direction);
+				this.onFlip(direction);
 			} 
 
 			// Change to adjacent card
 			fc.Stack.prototype.changeCard = function(direction) {
+				this.fc_cards[this.cur].onChange(this, fc.MOVEMENT.LEAVE);
+
 				if (direction === fc.MOVEMENT.UP)
 					this.showNextCard();
 				else
 					this.showPrevCard();
+
+				this.fc_cards[this.cur].onChange(this, fc.MOVEMENT.ENTER);
 			}
 		}
 
-		if (fc.tiltStacks.length) fc.tiltListener();
 		if (fc.dragStacks.length) fc.dragListener(fc.dragStacks);
 		if (fc.clickStacks.length) fc.clickListener(fc.clickStacks);
 		if (fc.swipeStacks.length) fc.swipeListener(fc.swipeStacks);
@@ -360,42 +389,39 @@ fc.FlashCard.prototype.drawBack = function(ctx) {
 
 // Called every time card is flipped
 fc.FlashCard.prototype.onFlip = function(stack, direction) {
-	if (this.functions) {
-		if (direction === fc.MOVEMENT.RIGHT) {
-			if (this.functions.onFlipRight)
-				this.functions.onFlipRight(stack);
-		}
-		else if (this.functions.onFlipLeft) {
-				this.functions.onFlipLeft(stack);
-		}
+	if (this.functions.onFlip)
+		this.functions.onFlip(stack);
 
-		if (stack.isFaceUp) {
-			if (this.functions.onFlipUp) {
-				this.functions.onFlipUp(stack);
-			}
+	if (stack.isFaceUp) {
+		if (this.functions.onFlipUp) {
+			this.functions.onFlipUp(stack);
 		}
-		else if (this.functions.onFlipDown) {
-			this.functions.onFlipDown(stack);
-		}
+	}
+	else if (this.functions.onFlipDown) {
+		this.functions.onFlipDown(stack);
+	}
 
-		if (this.functions.onFlip)
-			this.functions.onFlip(stack);
+	if (direction === fc.MOVEMENT.RIGHT) {
+		if (this.functions.onFlipRight)
+			this.functions.onFlipRight(stack);
+	}
+	else if (this.functions.onFlipLeft) {
+			this.functions.onFlipLeft(stack);
 	}
 }
 
 // Called every time card is changed
-fc.FlashCard.prototype.onChange = function(stack, direction) {
-	if (this.functions) {
-		if (direction === fc.MOVEMENT.LEAVE) {
-			if (this.functions.onLeave)
-				this.functions.onLeave(stack);
-		}
-		else if (this.functions.onEnter) {
-			this.functions.onEnter(stack);
+fc.FlashCard.prototype.onChange = function(stack, movement) {
+	if (movement === fc.MOVEMENT.LEAVE) {
+		if (this.functions.onChange)
+			this.functions.onChange(stack);
 
-			if (this.functions.onChange)
-				this.functions.onChange(stack);
-		}
+		if (this.functions.onLeave)
+			this.functions.onLeave(stack);
+
+	}
+	else if (this.functions.onEnter) {
+		this.functions.onEnter(stack);
 	}
 }
 /******************************
@@ -407,7 +433,7 @@ fc.Stack.prototype.push = function(flashcard) {
 	this.fc_cards.push(flashcard);
 
 	if (this.fc_cards.length <= 1) {
-		this.container.style.display = '';
+		this.holder.style.display = '';
 		this.resize();
 
 		if (this.usingCanvas) {
@@ -423,7 +449,7 @@ fc.Stack.prototype.push = function(flashcard) {
 // Pop card from stack
 fc.Stack.prototype.pop = function() {
 	if (this.fc_cards.length <= 1) {
-		this.container.style.display = 'none';
+		this.holder.style.display = 'none';
 	}
 	this.keys.pop();
 	return this.fc_cards.pop();
@@ -442,8 +468,8 @@ fc.Stack.prototype.load = function() {
 // Resize flashcards while maintaining aspect ratio
 fc.Stack.prototype.resize = function() {
 	with (this) {
-		var h = container.clientHeight;
-		var w = container.clientWidth;
+		var h = holder.clientHeight;
+		var w = holder.clientWidth;
 
 		if (h*aspectRatio > w)
 			h = w/aspectRatio;
@@ -463,6 +489,45 @@ fc.Stack.prototype.resize = function() {
 	}
 }
 
+fc.Stack.prototype.onChange = function(movement) {
+	if (movement === fc.MOVEMENT.LEAVE) {
+		if (this.functions.onChange)
+			this.functions.onChange(this);
+
+		if (this.functions.onLeave)
+			this.functions.onLeave(this);
+	}
+	else if (this.functions.onEnter) {
+		this.functions.onEnter(this);
+	}
+
+	this.fc_cards[this.cur].onChange(this, movement);
+}
+
+fc.Stack.prototype.onFlip = function(direction) {
+	if (this.functions.onFlip)
+		this.functions.onFlip(this);
+
+	if (this.isFaceUp) {
+		if (this.functions.onFlipUp) {
+			this.functions.onFlipUp(this);
+		}
+	}
+	else if (this.functions.onFlipDown) {
+		this.functions.onFlipDown(this);
+	}
+
+	if (direction === fc.MOVEMENT.RIGHT) {
+		if (this.functions.onFlipRight)
+			this.functions.onFlipRight(this);
+	}
+	else if (this.functions.onFlipLeft) {
+			this.functions.onFlipLeft(this);
+	}
+
+	this.fc_cards[this.cur].onFlip(this, direction);
+}
+
 // Set height and width of canvas context
 fc.Stack.prototype.setContextSize = function(x, y) {
 	this.card.width = x;
@@ -476,8 +541,8 @@ fc.Stack.prototype.setSize = function(x, y) {
 }
 
 // Switch to, and draw, the previous card
-fc.Stack.prototype.showPrevCard = function(thisStack) {
-	with (thisStack) {
+fc.Stack.prototype.showPrevCard = function() {
+	with (this) {
 		cur = (cur + fc_cards.length - 1) % fc_cards.length;
 		if (usingCanvas)
 			draw();
@@ -529,7 +594,6 @@ fc.Stack.prototype.resetTouchEvent = function() {
 fc.Stack.prototype.touchstart = function(e) {
 	this.touchX = e.touches[0].pageX;
 	this.touchY = e.touches[0].pageY;
-	e.preventDefault();
 }
 
 // TouchEnd
@@ -589,7 +653,6 @@ fc.Stack.prototype.dragListener = function() {
 		fc.touchedStack = thisStack;
 		e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
 		fc.touchedStack.touchstart(e);
-		console.log('mousedown');
 	});
 }
 
