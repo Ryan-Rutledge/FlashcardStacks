@@ -71,7 +71,7 @@
 			<!-- Second Card -->
 			<div class="fc_content two" data-fc-flipUp="focusform" data-fc-enter="focusform">
 				<p>What do you want the back of this card to say?</p>
-				<form onsubmit="document.getElementById('backSpan').innerHTML = this.say.value; fc.stacks['words'].flipCard(); return false">
+				<form onsubmit="document.getElementById('backSpan').innerHTML = this.say.value; this.say.blur(); fc.stacks['words'].flipCard(); return false">
 					<input name="say" autocomplete="off" maxlength="15" type="text" /><br />
 					<button type="submit" type="button">Make it so</button>
 				</form>

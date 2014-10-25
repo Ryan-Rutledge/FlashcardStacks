@@ -9,7 +9,6 @@ var fc = {
 	clickStacks: [],
 	swipeStacks: [],
 	arrowkeyStacks: [],
-	keys: [], // List of stack keys
 	SWIPE_DISTANCE: 0.15, // Percentage of flashcard width required to flip a card
 	tiltDegrees: 15, // Degrees card tilts
 	flipTime: 400, // Length of card flip animation 
@@ -212,26 +211,13 @@ var fc = {
 			}, false);
 	},
 
-	rescale: function() {
-		var stacks = arguments.length ? arguments:fc.keys;
-
-		for (var s in stacks) {
-			var curStack = fc.stacks[stacks[s]]
-			curStack.scalingEnabled = true;
-			curStack.resize();
-		}
-
-		return fc;
-	},
-
 	// Create flashcard stacks
 	init: function(objectStacks) {
 		// Setup Flashcard elements
 		var stackContainers = document.getElementsByClassName('fc_container');
 		for (var i = 0; i < stackContainers.length; i++) {
-			fc.keys.push(stackContainers[i].getAttribute('id'));
 			var newStack = new fc.Stack(stackContainers[i]);
-			fc.stacks[fc.keys[i]] = newStack;
+			fc.stacks[stackContainers[i].getAttribute('id')] = newStack;
 		}
 
 		// Resize flashcards
@@ -451,7 +437,6 @@ fc.Stack.prototype.pop = function() {
 	if (this.fc_cards.length <= 1) {
 		this.holder.style.display = 'none';
 	}
-	this.keys.pop();
 	return this.fc_cards.pop();
 }
 
