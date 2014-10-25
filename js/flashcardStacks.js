@@ -33,9 +33,7 @@ var fc = {
 			this.functions = arguments[0];
 		}
 		else {
-			this.sides = new Array(2);
-			this.sides[0] = arguments[0];
-			this.sides[1] = arguments[1];
+			this.sides = arguments;
 		}
 	},
 
@@ -47,18 +45,26 @@ var fc = {
 		this.swipeDist = 1;
 		this.isFaceUp = true;
 
-		this.tiltEnabled = stack.dataset.fcTilt === '';
-		this.dragEnabled = stack.dataset.fcDrag === '';
-		this.clickEnabled = stack.dataset.fcClick === '';
-		this.swipeEnabled = stack.dataset.fcSwipe === '';
-		this.arrowkeysEnabled = stack.dataset.fcArrowkeys === '';
-		this.scalingEnabled = stack.dataset.fcScale === '';
+		// Check which listeners are enabled
+		if (stack.dataset.fcAll === '') {
+			this.tiltEnabled = this.dragEnabled = this.clickEnabled = this.swipeEnabled = this.arrowkeysEnabled = true;
+		}
+		else {
+			this.tiltEnabled = stack.dataset.fcTilt === '';
+			this.dragEnabled = stack.dataset.fcDrag === '';
+			this.clickEnabled = stack.dataset.fcClick === '';
+			this.swipeEnabled = stack.dataset.fcSwipe === '';
+			this.arrowkeysEnabled = stack.dataset.fcArrowkeys === '';
+		}
 
-		if (this.tiltEnabled) fc.tiltStacks.push(this.id);
-		if (this.dragEnabled) fc.dragStacks.push(this.id);
-		if (this.clickEnabled) fc.clickStacks.push(this.id);
-		if (this.swipeEnabled) fc.swipeStacks.push(this.id);
-		if (this.arrowkeysEnabled) fc.arrowkeyStacks.push(this.id);
+		// Add to appropriate stacks
+		if (this.tiltEnabled) fc.tiltStacks.push(this);
+		if (this.dragEnabled) fc.dragStacks.push(this);
+		if (this.clickEnabled) fc.clickStacks.push(this);
+		if (this.swipeEnabled) fc.swipeStacks.push(this);
+		if (this.arrowkeysEnabled) fc.arrowkeyStacks.push(this);
+
+		this.scalingEnabled = stack.dataset.fcScale === '';
 
 		// Set front and back of flashcard
 		var elements = stack.getElementsByClassName('fc_content');
@@ -123,21 +129,7 @@ var fc = {
 			fc.stacks[key].resize();
 	},
 
-	swipeListener: function(stacks) {
-		for (var s in stacks) {
-			fc.stacks[stacks[s]].swipeListener();
-		}
-
-		// Touchend
-		window.addEventListener('touchend', function(e) {
-			if (fc.touchedStack) {
-				fc.touchedStack.touchend(e);
-			}
-			fc.touchedStack = false;
-		});
-	},
-
-	tiltListener: function(stacks) {
+	tiltListener: function() {
 		// Touchmove
 		window.addEventListener('touchmove', function(e) {
 			if (fc.touchedStack && fc.touchedStack.tiltEnabled) {
@@ -153,43 +145,11 @@ var fc = {
 				fc.touchedStack.touchmove(e);
 			}
 		});
-
-		return fc;
-	},
-
-	arrowkeyListener: function(stacks) {
-			window.addEventListener('keydown', function(e) {
-				if (e.which >= 37 && e.which <= 40)
-					for (var s in stacks) {
-						fc.stacks[stacks[s]].moveCard(e.which - 37);
-					}
-			}, false);
-
-			return fc;
-	},
-
-	clickListener: function(stacks) {
-		for (var s in stacks) {
-			var curStack = fc.stacks[stacks[s]];
-
-			curStack.card.addEventListener('click', function(e) {
-				curStack.flipCard();
-			});
-		}
 	},
 
 	dragListener: function(stacks) {
-		for (var s in stacks) {
-			var curStack = fc.stacks[stacks[s]];
-
-			// MouseDown
-			curStack.card.addEventListener('mousedown', function(e) {
-				fc.touchedStack = curStack;
-				e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-				fc.touchedStack.touchstart(e);
-				console.log('mousedown');
-			});
-		}
+		for (var s in stacks)
+			stacks[s].dragListener();
 
 		// MouseUp
 		window.addEventListener('mouseup', function(e) {
@@ -199,6 +159,33 @@ var fc = {
 			}
 			fc.touchedStack = false;
 		});
+	},
+
+	clickListener: function(stacks) {
+		for (var s in stacks)
+			stacks[s].clickListener();
+	},
+
+	swipeListener: function(stacks) {
+		for (var s in stacks)
+			stacks[s].swipeListener();
+
+		// Touchend
+		window.addEventListener('touchend', function(e) {
+			if (fc.touchedStack) {
+				fc.touchedStack.touchend(e);
+			}
+			fc.touchedStack = false;
+		});
+	},
+
+	arrowkeyListener: function(stacks) {
+			window.addEventListener('keydown', function(e) {
+				if (e.which >= 37 && e.which <= 40)
+					for (var s in stacks) {
+						stacks[s].moveCard(e.which - 37);
+					}
+			}, false);
 	},
 
 	rescale: function() {
@@ -334,11 +321,11 @@ var fc = {
 			}
 		}
 
-		if (fc.clickStacks.length) fc.clickListener(fc.clickStacks);
+		if (fc.tiltStacks.length) fc.tiltListener();
 		if (fc.dragStacks.length) fc.dragListener(fc.dragStacks);
+		if (fc.clickStacks.length) fc.clickListener(fc.clickStacks);
 		if (fc.swipeStacks.length) fc.swipeListener(fc.swipeStacks);
 		if (fc.arrowkeyStacks.length) fc.arrowkeyListener(fc.arrowkeyStacks);
-		if (fc.tiltStacks.length) fc.tiltListener();
 	}
 }
 
@@ -593,6 +580,19 @@ fc.Stack.prototype.touchmove = function(e) {
 		}
 	}
 }
+
+fc.Stack.prototype.dragListener = function() {
+	var thisStack = this;
+
+	// MouseDown
+	thisStack.card.addEventListener('mousedown', function(e) {
+		fc.touchedStack = thisStack;
+		e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+		fc.touchedStack.touchstart(e);
+		console.log('mousedown');
+	});
+}
+
 fc.Stack.prototype.swipeListener = function() {
 	var thisStack = this;
 
@@ -606,5 +606,12 @@ fc.Stack.prototype.swipeListener = function() {
 	// Touchend
 	thisStack.card.addEventListener('touchend', function(e) {
 		thisStack.touchend(e);
+	});
+}
+
+fc.Stack.prototype.clickListener = function() {
+	var thisStack = this;
+	thisStack.card.addEventListener('click', function(e) {
+		thisStack.flipCard();
 	});
 }
