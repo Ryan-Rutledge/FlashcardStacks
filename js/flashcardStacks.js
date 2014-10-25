@@ -57,6 +57,10 @@ var fc = {
 			this.arrowkeysEnabled = container.dataset.fcArrowkeys === '';
 		}
 
+		// If no datasets are provided, enable everything
+		if (!(this.tiltEnabled || this.dragEnabled || this.clickEnabled || this.swipeEnabled || this.arrowkeysEnabled))
+			this.tiltEnabled = this.dragEnabled = this.clickEnabled = this.swipeEnabled = this.arrowkeysEnabled = true;
+
 		// Add to this stack appropriate arrays
 		if (this.tiltEnabled) fc.tiltStacks.push(this);
 		if (this.dragEnabled) fc.dragStacks.push(this);

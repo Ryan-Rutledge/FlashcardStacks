@@ -71,7 +71,7 @@
 			<!-- Second Card -->
 			<div class="fc_content two" data-fc-flipUp="focusInput" data-fc-enter="focusInput" data-fc-flipDown="changeText">
 				<p>What do you want the back of this card to say?</p>
-				<input name="say" onchange="fc.stacks['words'].flipCard();" autocomplete="off" maxlength="15" type="text" /><br />
+				<input name="say" onchange="fc.stacks['words'].flipCard(); this.blur()" autocomplete="off" maxlength="15" type="text" /><br />
 			</div>
 			<div class="fc_content one">
 				<span id="backSpan">2<sup>nd</sup> Card</span>
@@ -86,7 +86,7 @@
 		</div>
 
 		<!-- colors stack -->
-		<div id="colors" class="fc_container" data-fc-width="50" data-fc-height="50" data-fc-drag data-fc-click data-fc-swipe data-fc-scale>
+		<div id="colors" class="fc_container" data-fc-width="50" data-fc-height="50" data-fc-scale>
 			<div class="note">Dragging, clicking, and swiping</div>
 		</div>
 
