@@ -569,28 +569,28 @@ fc.Stack.prototype.draw = function() {
 
 // Touch Reset
 fc.Stack.prototype.resetTouchEvent = function() {
-	this.touchX = null;
-	this.touchY = null;
+	fc.touchX = null;
+	fc.touchY = null;
 	this.card.classList.remove('fc_tiltLeft');
 	this.card.classList.remove('fc_tiltRight');
 }
 
 // Touchstart
 fc.Stack.prototype.touchstart = function(e) {
-	this.touchX = e.touches[0].pageX;
-	this.touchY = e.touches[0].pageY;
+	fc.touchX = e.touches[0].pageX;
+	fc.touchY = e.touches[0].pageY;
 }
 
 // TouchEnd
 fc.Stack.prototype.touchend = function(e) {
-	if (this.touchX != null && this.touchY != null) {
+	if (fc.touchX != null && fc.touchY != null) {
 		var endX = e.changedTouches[0].pageX;
 		var endY = e.changedTouches[0].pageY;
 
 		// If swipe length is long enough
-		if (Math.abs(endX - this.touchX) > this.swipeDist || Math.abs(endY - this.touchY) > this.swipeDist) {
+		if (Math.abs(endX - fc.touchX) > this.swipeDist || Math.abs(endY - fc.touchY) > this.swipeDist) {
 			e.preventDefault();
-			this.moveCard(fc.swipeDirection(this.touchX, this.touchY, endX, endY));
+			this.moveCard(fc.swipeDirection(fc.touchX, fc.touchY, endX, endY));
 		}
 	}
 
@@ -599,17 +599,17 @@ fc.Stack.prototype.touchend = function(e) {
 
 // Touchmove
 fc.Stack.prototype.touchmove = function(e) {
-	if (this.touchX != null && this.touchY != null) {
+	if (fc.touchX != null && fc.touchY != null) {
 		e.preventDefault();
 
 		var card = this.card;
 		var curX = e.touches[0].pageX;
 		var curY = e.touches[0].pageY;
-		var dist = Math.max(Math.abs(curX - this.touchX), Math.abs(curY - this.touchY));
+		var dist = Math.max(Math.abs(curX - fc.touchX), Math.abs(curY - fc.touchY));
 
 		// If length of swipe is long enough
 		if (dist > this.swipeDist) {
-			switch (fc.swipeDirection(this.touchX, this.touchY, curX, curY)) {
+			switch (fc.swipeDirection(fc.touchX, fc.touchY, curX, curY)) {
 				case fc.MOVEMENT.LEFT:
 					card.classList.remove('fc_tiltRight');
 					card.classList.add('fc_tiltLeft');

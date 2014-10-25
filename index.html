@@ -59,7 +59,7 @@
 	</head>
 	<body onload="init()">
 		<!-- words stack -->
-		<div id="words" class="fc_container" data-fc-width="100" data-fc-height="50" data-fc-arrowkeys data-fc-swipe>
+		<div id="words" class="fc_container" data-fc-width="100" data-fc-height="50" data-fc-arrowkeys data-fc-tilt data-fc-swipe>
 			<!-- First Card -->
 			<div class="fc_content one">
 				<span>2:1 Ratio</span>
@@ -69,18 +69,15 @@
 			</div>
 
 			<!-- Second Card -->
-			<div class="fc_content two" data-fc-flipUp="focusform" data-fc-enter="focusform">
+			<div class="fc_content two" data-fc-flipUp="focusInput" data-fc-enter="focusInput" data-fc-flipDown="changeText">
 				<p>What do you want the back of this card to say?</p>
-				<form onsubmit="document.getElementById('backSpan').innerHTML = this.say.value; this.say.blur(); fc.stacks['words'].flipCard(); return false">
-					<input name="say" autocomplete="off" maxlength="15" type="text" /><br />
-					<button type="submit" type="button">Make it so</button>
-				</form>
+				<input name="say" onchange="fc.stacks['words'].flipCard();" autocomplete="off" maxlength="15" type="text" /><br />
 			</div>
 			<div class="fc_content one">
 				<span id="backSpan">2<sup>nd</sup> Card</span>
 			</div>
 
-			<div class="note">Arrow keys and swiping</div>
+			<div class="note">Arrow keys, tilting, and swiping</div>
 		</div>
 
 		<!-- integers stack -->
@@ -96,13 +93,15 @@
 
 		<!-- JavaScript -->
 		<script>
-			function focusform(stack) {
-				if (stack.isFaceUp) {
-					say = document.getElementsByName('say')[0]
-					say.value = '';
-					say.focus();
-				}
+			function focusInput(stack) {
+				say = document.getElementsByName('say')[0]
+				say.value = '';
+				say.focus();
 			}
+			function changeText(stack) {
+				document.getElementById('backSpan').innerHTML = document.getElementsByName('say')[0].value; 
+			}
+
 			/******************************
 			 * Integer class              *
 			 ******************************/
