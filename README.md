@@ -1,4 +1,4 @@
-#flashcardStacks
+#FlashcardStacks
 
 
 Virtual flashcard JavaScript library
