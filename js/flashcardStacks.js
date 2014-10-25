@@ -4,6 +4,11 @@
 var fc = {
 	// Global variables
 	stacks: {}, // List of flashcard stacks
+	tiltStacks: [],
+	dragStacks: [],
+	clickStacks: [],
+	swipeStacks: [],
+	arrowkeyStacks: [],
 	keys: [], // List of stack keys
 	SWIPE_DISTANCE: 0.15, // Percentage of flashcard width required to flip a card
 	tiltDegrees: 15, // Degrees card tilts
@@ -36,17 +41,24 @@ var fc = {
 
 	// Stack constructor
 	Stack: function(stack) {
+		this.id = stack.getAttribute('id');
 		this.cur = 0; // Index of current card
 		this.fc_cards = []; // Empty stack of cards
+		this.swipeDist = 1;
+		this.isFaceUp = true;
 
-		this.isFaceUp = true; // Card is face up
-		this.swipeDist = 1; // Minimum swipe distance required to flip card
-		this.touchEnabled = false; // Swiping
-		this.tiltEnabled = false; // Tilt flip indication
-		this.dragEnabled = false; // Mouse dragging
-		this.keysEnabled = false; // Arrow keys
-		this.clickEnabled = false; // Mouse clicking
-		this.scalingEnabled = false; // Canvas resize with flashcard
+		this.tiltEnabled = stack.dataset.fcTilt === '';
+		this.dragEnabled = stack.dataset.fcDrag === '';
+		this.clickEnabled = stack.dataset.fcClick === '';
+		this.swipeEnabled = stack.dataset.fcSwipe === '';
+		this.arrowkeysEnabled = stack.dataset.fcArrowkeys === '';
+		this.scalingEnabled = stack.dataset.fcScale === '';
+
+		if (this.tiltEnabled) fc.tiltStacks.push(this.id);
+		if (this.dragEnabled) fc.dragStacks.push(this.id);
+		if (this.clickEnabled) fc.clickStacks.push(this.id);
+		if (this.swipeEnabled) fc.swipeStacks.push(this.id);
+		if (this.arrowkeysEnabled) fc.arrowkeyStacks.push(this.id);
 
 		// Set front and back of flashcard
 		var elements = stack.getElementsByClassName('fc_content');
@@ -111,12 +123,9 @@ var fc = {
 			fc.stacks[key].resize();
 	},
 
-	enableSwiping: function() {
-		var stacks = arguments.length ? arguments:fc.keys;
-
+	swipeListener: function(stacks) {
 		for (var s in stacks) {
-			var curStack = fc.stacks[stacks[s]];
-			curStack.enableSwiping();
+			fc.stacks[stacks[s]].swipeListener();
 		}
 
 		// Touchend
@@ -126,39 +135,9 @@ var fc = {
 			}
 			fc.touchedStack = false;
 		});
-
-		return fc;
 	},
 
-	enableDragging: function() {
-		var stacks = arguments.length ? arguments:fc.keys;
-		console.log(stacks);
-
-		for (var s in stacks) {
-			var curStack = fc.stacks[stacks[s]];
-			curStack.dragEnabled = true;
-			curStack.enableDragging();
-		}
-
-		// MouseUp
-		window.addEventListener('mouseup', function(e) {
-			if (fc.touchedStack) {
-				e.changedTouches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-				fc.touchedStack.touchend(e);
-			}
-			fc.touchedStack = false;
-		});
-
-		return fc;
-	},
-
-	enableTilting: function() {
-		var stacks = arguments.length ? arguments:fc.keys;
-
-		for (var s in stacks) {
-			fc.stacks[stacks[s]].tiltEnabled = true;
-		}
-
+	tiltListener: function(stacks) {
 		// Touchmove
 		window.addEventListener('touchmove', function(e) {
 			if (fc.touchedStack && fc.touchedStack.tiltEnabled) {
@@ -178,30 +157,48 @@ var fc = {
 		return fc;
 	},
 
-	enableArrowKeys: function() {
-		var stacks = arguments.length ? arguments:fc.keys;
-
+	arrowkeyListener: function(stacks) {
 			window.addEventListener('keydown', function(e) {
 				if (e.which >= 37 && e.which <= 40)
 					for (var s in stacks) {
-						var curStack = fc.stacks[stacks[s]];
-						curStack.keysEnabled;
-						curStack.moveCard(e.which - 37);
+						fc.stacks[stacks[s]].moveCard(e.which - 37);
 					}
 			}, false);
 
 			return fc;
 	},
 
-	enableClicking: function() {
-		var stacks = arguments.length ? arguments:fc.keys;
-
+	clickListener: function(stacks) {
 		for (var s in stacks) {
 			var curStack = fc.stacks[stacks[s]];
-			curStack.enableClicking();
+
+			curStack.card.addEventListener('click', function(e) {
+				curStack.flipCard();
+			});
+		}
+	},
+
+	dragListener: function(stacks) {
+		for (var s in stacks) {
+			var curStack = fc.stacks[stacks[s]];
+
+			// MouseDown
+			curStack.card.addEventListener('mousedown', function(e) {
+				fc.touchedStack = curStack;
+				e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+				fc.touchedStack.touchstart(e);
+				console.log('mousedown');
+			});
 		}
 
-		return fc;
+		// MouseUp
+		window.addEventListener('mouseup', function(e) {
+			if (fc.touchedStack) {
+				e.changedTouches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+				fc.touchedStack.touchend(e);
+			}
+			fc.touchedStack = false;
+		});
 	},
 
 	rescale: function() {
@@ -214,21 +211,6 @@ var fc = {
 		}
 
 		return fc;
-	},
-
-	enableAll: function() {
-		var stacks = arguments.length ? arguments:fc.keys;
-
-		for (var s in stacks) {
-			fc.enableArrowKeys(stacks[s]); // Enable arrow keys
-			fc.enableClicking(stacks[s]); // Enable mouse dragging
-			fc.enableDragging(stacks[s]); // Enable mouse dragging
-			fc.enableTilting(stacks[s]); // Enable mouse dragging
-			fc.enableSwiping(stacks[s]); // Enable touchscreen swiping
-		}
-
-		return fc;
-
 	},
 
 	// Create flashcard stacks
@@ -351,6 +333,12 @@ var fc = {
 					this.showPrevCard();
 			}
 		}
+
+		if (fc.clickStacks.length) fc.clickListener(fc.clickStacks);
+		if (fc.dragStacks.length) fc.dragListener(fc.dragStacks);
+		if (fc.swipeStacks.length) fc.swipeListener(fc.swipeStacks);
+		if (fc.arrowkeyStacks.length) fc.arrowkeyListener(fc.arrowkeyStacks);
+		if (fc.tiltStacks.length) fc.tiltListener();
 	}
 }
 
@@ -539,7 +527,7 @@ fc.Stack.prototype.moveCard = function(direction) {
 
 // Draw front and back of current card
 fc.Stack.prototype.draw = function() {
-	this.fc_cards[this.cur].draw(this.front, this.back);
+	if (this.fc_cards.length) this.fc_cards[this.cur].draw(this.front, this.back);
 }
 
 // Touch Reset
@@ -605,10 +593,8 @@ fc.Stack.prototype.touchmove = function(e) {
 		}
 	}
 }
-
-fc.Stack.prototype.enableSwiping = function() {
+fc.Stack.prototype.swipeListener = function() {
 	var thisStack = this;
-	thisStack.touchEnabled = true;
 
 	// Touchstart
 	thisStack.card.addEventListener('touchstart', function(e) {
@@ -620,25 +606,5 @@ fc.Stack.prototype.enableSwiping = function() {
 	// Touchend
 	thisStack.card.addEventListener('touchend', function(e) {
 		thisStack.touchend(e);
-	});
-}
-
-fc.Stack.prototype.enableDragging = function() {
-	var thisStack = this;
-	thisStack.dragEnabled = true;
-
-	// MouseDown
-	thisStack.card.addEventListener('mousedown', function(e) {
-		fc.touchedStack = thisStack;
-		e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-		fc.touchedStack.touchstart(e);
-	});
-}
-
-fc.Stack.prototype.enableClicking = function() {
-	var thisStack = this;
-
-	thisStack.card.addEventListener('click', function(e) {
-		thisStack.flipCard();
 	});
 }
