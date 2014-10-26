@@ -11,50 +11,41 @@
 		<script src="js/flashcardStacks.js" type="text/javascript"></script>
 
 		<style>
-			html, body {height: 100%;}
-
-			body {
-				background-color: #d23823;
-				font-family: sans-serif;
-				margin: 0;
-			}
-
-			.note {
-				position: absolute;
-				top: 3px; left: 5px;
-			}
-			.fc_container {
-				position: relative;
-				height: 50%;
-				width: 50%;
-				padding: 1.5em;
-				float: left;
-				border: 2px solid #333;
-				color: #eee;
-			}
-			#integers {
-				height: 100%;
-				float: right;
-			}
-			.fc_content {
-				color: #333;
-				line-height: 2em;
-				text-align: center;
-				padding: 5px;
-				display: table;
-			}
-			button {border: none;}
-			span, button {font-size: 1.5em; vertical-align: middle;}
-			span {display: table-cell;}
-			.fc_content > p {
-				text-align: left;
+			html, body, #integers {height: 100%;}
+			body, p {
 				line-height: 1.4em;
-				text-indent: 1ex;
 				margin: 0; padding: 0;
 			}
-			
-			.one {background-color: #e8e968}
-			.two {background-color: #c9a5f9}
+			body {
+				background-color: #3d3c3a;
+				color: #ffffff;
+				font-family: sans-serif;
+			}
+			span {
+				display: table-cell;
+				font-size: 1.5em;
+				vertical-align: middle;
+			}
+			.fc_container {
+				float: left;
+				position: relative;
+				height: 50%; width: 50%;
+				border: 2px solid #707070;
+				padding: 1em;
+			}
+			.fc_content {
+				display: table;
+				padding: 5px;
+				line-height: 2em;
+				text-align: center;
+			}
+			.note {
+				position: absolute;
+				left: 5px; top: 5px;
+			}
+			#integers {float: right;}
+			.one {background-color: #8bc53f}
+			.two {background-color: #d32127}
 		</style>
 	</head>
 	<body onload="init()">
@@ -69,9 +60,9 @@
 			</div>
 
 			<!-- Second Card -->
-			<div class="fc_content two" data-fc-flipUp="focusInput" data-fc-enter="focusInput" data-fc-flipDown="changeText">
+			<div class="fc_content two" data-fc-flipDown="changeText">
 				<p>What do you want the back of this card to say?</p>
-				<input name="say" onchange="fc.stacks['words'].flipCard();" autocomplete="off" maxlength="15" type="text" /><br />
+				<input name="say" onchange="fc.stacks['words'].flipCard();" autocomplete="off" maxlength="25" type="text" /><br />
 			</div>
 			<div class="fc_content two">
 				<span id="backSpan">2<sup>nd</sup> Card</span>
@@ -90,16 +81,12 @@
 			<div class="note">Dragging, clicking, and swiping</div>
 		</div>
 
-
-		<!-- JavaScript -->
 		<script>
-			function focusInput(stack) {
-				if (stack.isFaceUp) {
-					say = document.getElementsByName('say')[0]
-					say.value = '';
-					say.focus();
-				}
-			}
+			/******************************
+			 * JavaScript                 *
+			 ******************************/
+
+			// Change back inner html of card
 			function changeText(stack) {
 				say = document.getElementsByName('say')[0]
 				say.blur();
@@ -108,32 +95,42 @@
 				document.activeElement = document.body
 			}
 
-			/******************************
-			 * Integer class              *
-			 ******************************/
-
-			Integer = function(number, string) {
-				this.number = number;
-				this.string = string;
-			}
-			Integer.prototype.drawFront = function(ctx) {
+			function drawCenter(text, ctx) {
 				var w = ctx.canvas.width / 2;
 				var h = ctx.canvas.height / 2;
 
 				// Number
 				ctx.fillStyle = '#333';
-				ctx.font = h + 'px "Trebuchet MS", "Tahoma", sans-serif';
 				ctx.textAlign = 'center';
 				ctx.textBaseline = 'middle';
-				ctx.fillText(this.string, w, h);
+				ctx.fillText(text, w, h);
+
 			}
+
+			/******************************
+			 * Integer class methods      *
+			 ******************************/
+
+			// Integer constructor
+			Integer = function(number, string) {
+				this.number = number;
+				this.string = string;
+			}
+
+			// Draws the front of an integer card
+			Integer.prototype.drawFront = function(ctx) {
+				ctx.font = (ctx.canvas.height / 2) + 'px "Trebuchet MS", "Tahoma", sans-serif';
+				drawCenter(this.string, ctx)
+			}
+
+			// Draws the back of an integer card
 			Integer.prototype.drawBack = function(ctx) {
 				var w = ctx.canvas.width / 2;
 				var h = ctx.canvas.height / 2;
 				var circleDist = w / 2;
 				var circleDiameter = w / 5;
 
-				// Circles
+				// Draw circles
 				ctx.fillStyle = '#333';
 				for (var i = 0; i < this.number; i++) {
 					ctx.beginPath()
@@ -144,23 +141,25 @@
 			}
 
 			/******************************
-			 * Color class                *
+			 * Color class methods        *
 			 ******************************/
 
+			// Color constructor
 			Color = function(color) {
 				this.color = color;
 			}
+
+			// Draws the front of a color card
 			Color.prototype.drawFront = function(ctx) {
 				var w = ctx.canvas.width / 2;
 				var h = ctx.canvas.height / 2;
 
-				// String
-				ctx.fillStyle = '#333';
-				ctx.font = w / 2 + 'px serif';
-				ctx.textAlign = 'center';
-				ctx.textBaseline = 'middle';
-				ctx.fillText(this.color, w, h);
+				// Draw string
+				ctx.font = (ctx.canvas.width / 4) + 'px serif';
+				drawCenter(this.color, ctx);
 			}
+
+			// Draws the back of a color card
 			Color.prototype.drawBack = function(ctx) {
 				// Color
 				ctx.fillStyle = this.color;
@@ -169,12 +168,16 @@
 				ctx.fill();
 				ctx.closePath()
 			}
+
+			// Change container color
 			Color.prototype.onFlipDown = function(stack) {
 				stack.container.style.backgroundColor = this.color;
 			}
+			// Restore container color
 			Color.prototype.onFlipUp = function(stack) {
 				stack.container.style.backgroundColor = '';
 			}
+			// If stack is faceup, call function 'onflipdown'
 			Color.prototype.onEnter = function(stack) {
 				if (!stack.isFaceUp) this.onFlipDown(stack);
 			}
@@ -184,12 +187,14 @@
 			 ******************************/
 
 			 function init() {
+				// Array of Color objects
 				var colors = [
 					new Color('Green'),
 					new Color('Blue'),
 					new Color('Purple')
 				]
 
+				// Array of Integer objects
 				var integers = [
 					new Integer(1, 'One'),
 					new Integer(2, 'Two'),
@@ -199,6 +204,7 @@
 					new Integer(6, 'Six'),
 				]
 
+				// Load flashcards onto webpage
 				fc.init({
 					'integers': integers,
 					'colors': colors
