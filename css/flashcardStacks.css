@@ -1,3 +1,7 @@
+.fc_container, .fc_outerHolder .fc_innerHolder, .fc_card, .fc_side, .fc_content { 
+	padding 0; margin: 0;
+}
+
 .fc_container {
 	overflow: hidden;
 }
@@ -56,7 +60,6 @@ canvas.fc_side {
 }
 
 .fc_content {
-	margin: 0;
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
@@ -64,7 +67,7 @@ canvas.fc_side {
 	background-color: #fff;
 }
 
-.fc_flipLeft, .fc_tiltLeft, .fc_flipRight, .fc_tiltRight {
+.fc_flipLeft, .fc_tiltLeft, .fc_flipRight, .fc_tiltRight, .fc_tiltUp, .fc_tiltDown {
 	-webkit-transition: -webkit-transform 0.4s ease-out;
 	transition: transform 0.5s ease-out;
 }
@@ -107,6 +110,22 @@ canvas.fc_side {
 	-webkit-transform: rotateY(160deg);
 	-ms-transform: rotateY(160deg);
 	transform: rotateY(160deg);
+}
+
+.fc_tiltUp {
+	transform: translate(0, -1%);
+	transform: translate(0, -1%);
+}
+
+.fc_tiltDown {
+	transform: translate(0, 1%);
+	transform: translate(0, 1%);
+}
+
+.fc_back, .fc_facedown, .fc_faceup.fc_flipLeft {
+	-webkit-transform: rotateY(180deg);
+	-ms-transform: rotateY(180deg);
+	transform: rotateY(180deg);
 }
 
 .fc_noAnimation, .fc_noAnimation > .fc_back {

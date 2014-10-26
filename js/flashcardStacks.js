@@ -132,7 +132,7 @@ var fc = {
 					this.animating = true;
 					var thisStack = this
 
-					// Switch facedown and faceup css classes after card has finished flipping
+					// Switch facedown and faceup css classes after animation finishes
 					if (this.isFaceUp) {
 						this.isFaceUp = false;
 
@@ -151,14 +151,20 @@ var fc = {
 						}, fc.FLIP_TIME);
 					}
 
-					// Add css flip animation classes, then remove them after the animation is finished
+					// Add css flip animation classes, then remove them after animation finishes
 					if (direction == fc.MOVEMENT.LEFT) {
 						thisStack.card.classList.add('fc_flipLeft');
-						var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_flipLeft'); ; thisStack.animating = false;}, fc.FLIP_TIME);
+						var t2 = setTimeout(function() {
+							thisStack.card.classList.remove('fc_flipLeft');
+							thisStack.animating = false;
+						}, fc.FLIP_TIME);
 					}
 					else {
 						thisStack.card.classList.add('fc_flipRight');
-						var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_flipRight'); thisStack.animating = false;}, fc.FLIP_TIME);
+						var t2 = setTimeout(function() {
+							thisStack.card.classList.remove('fc_flipRight');
+							thisStack.animating = false;
+						}, fc.FLIP_TIME);
 					}
 
 					thisStack.onFlip(direction);
@@ -592,6 +598,7 @@ fc.Stack.prototype.draw = function() {
 fc.Stack.prototype.resetTouchEvent = function() {
 	fc.touchX = null;
 	fc.touchY = null;
+	fc.prevDir = null;
 	this.card.classList.remove('fc_tiltLeft');
 	this.card.classList.remove('fc_tiltRight');
 }
@@ -622,6 +629,7 @@ fc.Stack.prototype.touchend = function(e) {
 fc.Stack.prototype.touchmove = function(e) {
 	if (fc.touchX != null && fc.touchY != null) {
 		var card = this.card;
+		var holder = this.outerHolder;
 		var curX = e.touches[0].pageX;
 		var curY = e.touches[0].pageY;
 		var dist = Math.max(Math.abs(curX - fc.touchX), Math.abs(curY - fc.touchY));
@@ -629,24 +637,48 @@ fc.Stack.prototype.touchmove = function(e) {
 		// If length of swipe is long enough
 		if (dist > this.swipeDist) {
 			e.preventDefault();
+			var swipeDir = fc.swipeDirection(fc.touchX, fc.touchY, curX, curY);
+			// If direction of swipe has changed
+			if (fc.prevDir != swipeDir) {
+				fc.prevDir = swipeDir;
 
-			switch (fc.swipeDirection(fc.touchX, fc.touchY, curX, curY)) {
-				case fc.MOVEMENT.LEFT:
-					card.classList.remove('fc_tiltRight');
-					card.classList.add('fc_tiltLeft');
-					break;
-				case fc.MOVEMENT.RIGHT:
-					card.classList.remove('fc_tiltLeft');
-					card.classList.add('fc_tiltRight');
-					break;
-				default:
-					card.classList.remove('fc_tiltLeft');
-					card.classList.remove('fc_tiltRight');
+				switch (swipeDir) {
+					case fc.MOVEMENT.LEFT:
+						card.classList.remove('fc_tiltRight');
+						holder.classList.remove('fc_tiltUp');
+						holder.classList.remove('fc_tiltDown');
+
+						card.classList.add('fc_tiltLeft');
+						break;
+					case fc.MOVEMENT.RIGHT:
+						card.classList.remove('fc_tiltLeft');
+						holder.classList.remove('fc_tiltUp');
+						holder.classList.remove('fc_tiltDown');
+
+						card.classList.add('fc_tiltRight');
+						break;
+					case fc.MOVEMENT.UP:
+						card.classList.remove('fc_tiltLeft');
+						card.classList.remove('fc_tiltRight');
+						holder.classList.remove('fc_tiltDown');
+
+						holder.classList.add('fc_tiltUp');
+						break
+					default:
+						card.classList.remove('fc_tiltLeft');
+						card.classList.remove('fc_tiltRight');
+						holder.classList.remove('fc_tiltUp');
+
+						holder.classList.add('fc_tiltDown');
+						break;
+				}
 			}
 		}
-		else {
+		else if (fc.prevDir) {
 			card.classList.remove('fc_tiltLeft');
 			card.classList.remove('fc_tiltRight');
+			holder.classList.remove('fc_tiltUp');
+			holder.classList.remove('fc_tiltDown');
 		}
 	}
 }
