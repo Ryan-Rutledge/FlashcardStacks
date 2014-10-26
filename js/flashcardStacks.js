@@ -322,13 +322,13 @@ fc.Stack = function(container) {
 	this.isFaceUp = true;
 
 	// Check which listeners are enabled
-	this.tiltEnabled = container.dataset.fcTilt === '';
-	this.dragEnabled = container.dataset.fcDrag === '';
-	this.clickEnabled = container.dataset.fcClick === '';
-	this.swipeEnabled = container.dataset.fcSwipe === '';
-	this.arrowkeysEnabled = container.dataset.fcArrowkeys === '';
+	this.tiltEnabled = container.getAttribute('fc-tilt') === '';
+	this.dragEnabled = container.getAttribute('fc-drag') === '';
+	this.clickEnabled = container.getAttribute('fc-click') === '';
+	this.swipeEnabled = container.getAttribute('fc-swipe') === '';
+	this.arrowkeysEnabled = container.getAttribute('fc-arrowkeys') === '';
 
-	// If no datasets are provided, enable everything
+	// If no fc attributes are provided, enable everything
 	if (!(this.tiltEnabled || this.dragEnabled || this.clickEnabled || this.swipeEnabled || this.arrowkeysEnabled))
 		this.tiltEnabled = this.dragEnabled = this.clickEnabled = this.swipeEnabled = this.arrowkeysEnabled = true;
 
@@ -339,18 +339,18 @@ fc.Stack = function(container) {
 	if (this.swipeEnabled) fc.swipeStacks.push(this);
 	if (this.arrowkeysEnabled) fc.arrowkeyStacks.push(this);
 
-	this.scalingEnabled = container.dataset.fcScale === '';
+	this.scalingEnabled = container.getAttribute('fc-scale') === '';
 
 	// Assign stack functions
 	this.functions = {};
-	this.functions.onChange = container.dataset.fcOnchange ? window[container.dataset.fcOnchange]:null;
-	this.functions.onEnter = container.dataset.fcOnenter ? window[container.dataset.fcOnenter]:null;
-	this.functions.onLeave = container.dataset.fcOnleave ? window[container.dataset.fcOnleave]:null;
-	this.functions.onFlip = container.dataset.fcOnflip ? window[container.dataset.fcOnflip]:null;
-	this.functions.onFlipUp = container.dataset.fcOnflipup ? window[container.dataset.fcOnflipup]:null;
-	this.functions.onFlipDown = container.dataset.fcOnflipdown ? window[container.dataset.fcOnflipdown]:null;
-	this.functions.onFlipRight = container.dataset.fcOnflipright ? window[container.dataset.fcOnflipright]:null;
-	this.functions.onFlipLeft = container.dataset.fcOnflipleft ? window[container.dataset.fcOnflipleft]:null;
+	this.functions.onChange = window[container.getAttribute('fc-onChange')];
+	this.functions.onEnter = window[container.getAttribute('fc-onEnter')];
+	this.functions.onLeave = window[container.getAttribute('fc-onLeave')];
+	this.functions.onFlip = window[container.getAttribute('fc-onFlip')];
+	this.functions.onFlipUp = window[container.getAttribute('fc-onFlipup')];
+	this.functions.onFlipDown = window[container.getAttribute('fc-onFlipdown')];
+	this.functions.onFlipRight = window[container.getAttribute('fc-onFlipright')];
+	this.functions.onFlipLeft = window[container.getAttribute('fc-onFlipleft')];
 
 	// Create card element
 	this.card = document.createElement('div');
@@ -373,13 +373,6 @@ fc.Stack = function(container) {
 	this.front.classList.add('fc_front');
 	this.back.classList.add('fc_side');
 	this.back.classList.add('fc_back');
-
-	// Set dimensions
-	this.front.height = this.back.height = container.dataset.fcHeight ? container.dataset.fcHeight:400;
-	this.front.width = this.back.width = container.dataset.fcWidth ? container.dataset.fcWidth:600;
-	this.card.style.height = this.front.height + 'px';
-	this.card.style.width = this.front.width + 'px';
-	this.aspectRatio = this.front.width / this.front.height;
 
 	with (this.card) {
 		// Add card classes
@@ -404,7 +397,13 @@ fc.Stack = function(container) {
 	this.outerHolder.classList.add('fc_outerHolder');
 	container.appendChild(this.outerHolder);
 
-	this.resetTouchEvent();
+	// Set dimensions
+	if (container.getAttribute('fc-margin')) this.outerHolder.style.padding = container.getAttribute('fc-margin');
+	this.front.height = this.back.height = container.getAttribute('fc-height') ? container.getAttribute('fc-height'):400;
+	this.front.width = this.back.width = container.getAttribute('fc-width') ? container.getAttribute('fc-width'):600;
+	this.card.style.height = this.front.height + 'px';
+	this.card.style.width = this.front.width + 'px';
+	this.aspectRatio = this.front.width / this.front.height;
 
 	if (!this.usingCanvas) {
 		for (var i = 0; i < elements.length; i+=2) {
@@ -416,17 +415,19 @@ fc.Stack = function(container) {
 			
 			var flashcard = new fc.FlashCard(front, back)
 
-			flashcard.functions.onChange = front.dataset.fcOnchange ? window[front.dataset.fcOnchange]:null;
-			flashcard.functions.onEnter = front.dataset.fcOnenter ? window[front.dataset.fcOnenter]:null;
-			flashcard.functions.onLeave = front.dataset.fcOnleave ? window[front.dataset.fcOnleave]:null;
-			flashcard.functions.onFlip = front.dataset.fcOnflip ? window[front.dataset.fcOnflip]:null;
-			flashcard.functions.onFlipUp = front.dataset.fcOnflipup ? window[front.dataset.fcOnflipup]:null;
-			flashcard.functions.onFlipDown = front.dataset.fcOnflipdown ? window[front.dataset.fcOnflipdown]:null;
-			flashcard.functions.onFlipRight = front.dataset.fcOnflipright ? window[front.dataset.fcOnflipright]:null;
-			flashcard.functions.onFlipLeft = front.dataset.fcOnflipleft ? window[front.dataset.fcOnflipleft]:null;
+			flashcard.functions.onChange = window[front.getAttribute('fc-onChange')];
+			flashcard.functions.onEnter = window[front.getAttribute('fc-onEnter')];
+			flashcard.functions.onLeave = window[front.getAttribute('fc-onLeave')];
+			flashcard.functions.onFlip = window[front.getAttribute('fc-onFlip')];
+			flashcard.functions.onFlipUp = window[front.getAttribute('fc-onFlipup')];
+			flashcard.functions.onFlipDown = window[front.getAttribute('fc-onFlipdown')];
+			flashcard.functions.onFlipRight = window[front.getAttribute('fc-onFlipright')];
+			flashcard.functions.onFlipLeft = window[front.getAttribute('fc-onFlipleft')];
 
 			this.push(flashcard);
 		}
+
+		this.resetTouchEvent();
 	}
 }
 

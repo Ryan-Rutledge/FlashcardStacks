@@ -51,7 +51,7 @@
 	</head>
 	<body onload="init()">
 		<!-- words stack -->
-		<div id="words" class="fc_container" data-fc-width="600" data-fc-height="300" data-fc-arrowkeys data-fc-tilt data-fc-swipe>
+		<div id="words" class="fc_container" fc-width="600" fc-height="300" fc-tester="TESTING 1 2 3" fc-margin="10%" fc-arrowkeys fc-tilt fc-swipe>
 			<div class="fc_content one">
 				<!-- Front of card one -->
 				<span>2:1 Ratio</span>
@@ -61,7 +61,7 @@
 				<p>This is a &lt;p&gt; tag. It contains ten different words!</p>
 			</div>
 
-			<div class="fc_content two" data-fc-onFlipDown="changeText">
+			<div class="fc_content two" fc-onFlipDown="changeText">
 				<!-- Front of card two -->
 				<p>What do you want the back of this card to say?</p>
 				<input name="say" onchange="fc.stacks['words'].flipCard();" autocomplete="off" maxlength="25" type="text" /><br />
@@ -75,12 +75,12 @@
 		</div>
 
 		<!-- integers stack -->
-		<div id="integers" class="fc_container" data-fc-drag data-fc-swipe data-fc-tilt>
+		<div id="integers" class="fc_container" fc-drag fc-swipe fc-tilt>
 			<div class="note">Dragging, tilting, and swiping</div>
 		</div>
 
 		<!-- colors stack -->
-		<div id="colors" class="fc_container" data-fc-width="500" data-fc-height="500" data-fc-drag data-fc-click data-fc-swipe data-fc-scale>
+		<div id="colors" class="fc_container" fc-width="500" fc-height="500" fc-drag fc-click fc-swipe fc-scale>
 			<div class="note">Dragging, clicking, and swiping</div>
 		</div>
 
