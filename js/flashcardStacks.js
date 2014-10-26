@@ -356,6 +356,9 @@ fc.Stack = function(container) {
 	this.functions.onFlipRight = container.dataset.fcFlipright ? window[container.dataset.fcFlipright]:null;
 	this.functions.onFlipLeft = container.dataset.fcFlipleft ? window[container.dataset.fcFlipleft]:null;
 
+	// Create card element
+	this.card = document.createElement('div');
+
 	// Set front and back of flashcard
 	var elements = container.getElementsByClassName('fc_content');
 	if (elements.length) {
@@ -369,6 +372,7 @@ fc.Stack = function(container) {
 		this.back = document.createElement('canvas');
 	}
 
+	// Add classes to front and back
 	this.front.classList.add('fc_side');
 	this.front.classList.add('fc_front');
 	this.back.classList.add('fc_side');
@@ -377,13 +381,17 @@ fc.Stack = function(container) {
 	// Set dimensions
 	this.front.height = this.back.height = container.dataset.fcHeight ? container.dataset.fcHeight:400;
 	this.front.width = this.back.width = container.dataset.fcWidth ? container.dataset.fcWidth:600;
+	this.card.style.height = this.front.height + 'px';
+	this.card.style.width = this.front.width + 'px';
+	console.log(this.card.style.height);
 	this.aspectRatio = this.front.width / this.front.height;
 
-	// Set card
-	this.card = document.createElement('div');
 	with (this.card) {
+		// Add card classes
 		classList.add('fc_card');
 		classList.add('fc_faceup');
+
+		// Append front and back
 		appendChild(this.front);
 		appendChild(this.back);
 	}
