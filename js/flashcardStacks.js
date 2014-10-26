@@ -601,6 +601,8 @@ fc.Stack.prototype.resetTouchEvent = function() {
 	fc.prevDir = null;
 	this.card.classList.remove('fc_tiltLeft');
 	this.card.classList.remove('fc_tiltRight');
+	this.outerHolder.classList.remove('fc_tiltUp');
+	this.outerHolder.classList.remove('fc_tiltDown');
 }
 
 // Sets touch/mousedown event variables
