@@ -676,7 +676,7 @@ fc.Stack.prototype.touchmove = function(e) {
 				}
 			}
 		}
-		else if (fc.prevDir) {
+		else if (e.prevDir !== null) {
 			card.classList.remove('fc_tiltLeft');
 			card.classList.remove('fc_tiltRight');
 			holder.classList.remove('fc_tiltUp');
