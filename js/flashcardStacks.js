@@ -176,24 +176,22 @@ var fc = {
 					// Add appropriate css move class, and remove when animation is finished
 					switch (direction) {
 						case fc.MOVEMENT.UP:
-							thisStack.card.classList.add('fc_moveUp');
+							thisStack.outerHolder.classList.add('fc_moveUp');
 
 							var t1 = setTimeout(function() {
 								thisStack.showNextCard();
-								thisStack.onChange(fc.MOVEMENT.ENTER);
 							}, fc.CHANGE_TIME/2);
-							var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_moveUp'); thisStack.animating = false;}, fc.CHANGE_TIME);
+							var t2 = setTimeout(function() {thisStack.outerHolder.classList.remove('fc_moveUp'); thisStack.animating = false;}, fc.CHANGE_TIME);
 
 							break;
 						default:
-							thisStack.card.classList.add('fc_moveDown');
+							thisStack.outerHolder.classList.add('fc_moveDown');
 
 							var t1 = setTimeout(function() {
 								thisStack.showPrevCard(thisStack);
-								thisStack.onChange(fc.MOVEMENT.ENTER);
 							}, fc.CHANGE_TIME/2);
 
-							var t2 = setTimeout(function() {thisStack.card.classList.remove('fc_moveDown'); thisStack.animating = false;}, fc.CHANGE_TIME);
+							var t2 = setTimeout(function() {thisStack.outerHolder.classList.remove('fc_moveDown'); thisStack.animating = false;}, fc.CHANGE_TIME);
 							break;
 					}
 
@@ -223,8 +221,6 @@ var fc = {
 					this.showNextCard();
 				else
 					this.showPrevCard();
-
-				this.onChange(this, fc.MOVEMENT.ENTER);
 			}
 		}
 
@@ -336,7 +332,7 @@ fc.Stack = function(container) {
 	if (!(this.tiltEnabled || this.dragEnabled || this.clickEnabled || this.swipeEnabled || this.arrowkeysEnabled))
 		this.tiltEnabled = this.dragEnabled = this.clickEnabled = this.swipeEnabled = this.arrowkeysEnabled = true;
 
-	// Add to this stack appropriate arrays
+	// Add this stack to appropriate arrays
 	if (this.tiltEnabled) fc.tiltStacks.push(this);
 	if (this.dragEnabled) fc.dragStacks.push(this);
 	if (this.clickEnabled) fc.clickStacks.push(this);
@@ -347,14 +343,14 @@ fc.Stack = function(container) {
 
 	// Assign stack functions
 	this.functions = {};
-	this.functions.onChange = container.dataset.fcChange ? window[container.dataset.fcChange]:null;
-	this.functions.onEnter = container.dataset.fcEnter ? window[container.dataset.fcEnter]:null;
-	this.functions.onLeave = container.dataset.fcLeave ? window[container.dataset.fcLeave]:null;
-	this.functions.onFlip = container.dataset.fcFlip ? window[container.dataset.fcFlip]:null;
-	this.functions.onFlipUp = container.dataset.fcFlipup ? window[container.dataset.fcFlipup]:null;
-	this.functions.onFlipDown = container.dataset.fcFlipdown ? window[container.dataset.fcFlipdown]:null;
-	this.functions.onFlipRight = container.dataset.fcFlipright ? window[container.dataset.fcFlipright]:null;
-	this.functions.onFlipLeft = container.dataset.fcFlipleft ? window[container.dataset.fcFlipleft]:null;
+	this.functions.onChange = container.dataset.fcOnchange ? window[container.dataset.fcOnchange]:null;
+	this.functions.onEnter = container.dataset.fcOnenter ? window[container.dataset.fcOnenter]:null;
+	this.functions.onLeave = container.dataset.fcOnleave ? window[container.dataset.fcOnleave]:null;
+	this.functions.onFlip = container.dataset.fcOnflip ? window[container.dataset.fcOnflip]:null;
+	this.functions.onFlipUp = container.dataset.fcOnflipup ? window[container.dataset.fcOnflipup]:null;
+	this.functions.onFlipDown = container.dataset.fcOnflipdown ? window[container.dataset.fcOnflipdown]:null;
+	this.functions.onFlipRight = container.dataset.fcOnflipright ? window[container.dataset.fcOnflipright]:null;
+	this.functions.onFlipLeft = container.dataset.fcOnflipleft ? window[container.dataset.fcOnflipleft]:null;
 
 	// Create card element
 	this.card = document.createElement('div');
@@ -383,7 +379,6 @@ fc.Stack = function(container) {
 	this.front.width = this.back.width = container.dataset.fcWidth ? container.dataset.fcWidth:600;
 	this.card.style.height = this.front.height + 'px';
 	this.card.style.width = this.front.width + 'px';
-	console.log(this.card.style.height);
 	this.aspectRatio = this.front.width / this.front.height;
 
 	with (this.card) {
@@ -396,14 +391,18 @@ fc.Stack = function(container) {
 		appendChild(this.back);
 	}
 
-	// Create inner element for margins
-	this.holder = document.createElement('div');
-	this.holder.appendChild(this.card);
-	this.holder.style.display = 'none';
-	this.holder.classList.add('fc_holder');
 
-	// Append to parent
-	container.appendChild(this.holder);
+	// Create inner element for translation animation
+	this.innerHolder = document.createElement('div');
+	this.innerHolder.appendChild(this.card);
+	this.innerHolder.classList.add('fc_innerHolder');
+
+	// Create outer element for translation animation
+	this.outerHolder = document.createElement('div');
+	this.outerHolder.appendChild(this.innerHolder);
+	this.outerHolder.style.display = 'none';
+	this.outerHolder.classList.add('fc_outerHolder');
+	container.appendChild(this.outerHolder);
 
 	this.resetTouchEvent();
 
@@ -417,14 +416,14 @@ fc.Stack = function(container) {
 			
 			var flashcard = new fc.FlashCard(front, back)
 
-			flashcard.functions.onChange = front.dataset.fcChange ? window[front.dataset.fcChange]:null;
-			flashcard.functions.onEnter = front.dataset.fcEnter ? window[front.dataset.fcEnter]:null;
-			flashcard.functions.onLeave = front.dataset.fcLeave ? window[front.dataset.fcLeave]:null;
-			flashcard.functions.onFlip = front.dataset.fcFlip ? window[front.dataset.fcFlip]:null;
-			flashcard.functions.onFlipUp = front.dataset.fcFlipup ? window[front.dataset.fcFlipup]:null;
-			flashcard.functions.onFlipDown = front.dataset.fcFlipdown ? window[front.dataset.fcFlipdown]:null;
-			flashcard.functions.onFlipRight = front.dataset.fcFlipright ? window[front.dataset.fcFlipright]:null;
-			flashcard.functions.onFlipLeft = front.dataset.fcFlipleft ? window[front.dataset.fcFlipleft]:null;
+			flashcard.functions.onChange = front.dataset.fcOnchange ? window[front.dataset.fcOnchange]:null;
+			flashcard.functions.onEnter = front.dataset.fcOnenter ? window[front.dataset.fcOnenter]:null;
+			flashcard.functions.onLeave = front.dataset.fcOnleave ? window[front.dataset.fcOnleave]:null;
+			flashcard.functions.onFlip = front.dataset.fcOnflip ? window[front.dataset.fcOnflip]:null;
+			flashcard.functions.onFlipUp = front.dataset.fcOnflipup ? window[front.dataset.fcOnflipup]:null;
+			flashcard.functions.onFlipDown = front.dataset.fcOnflipdown ? window[front.dataset.fcOnflipdown]:null;
+			flashcard.functions.onFlipRight = front.dataset.fcOnflipright ? window[front.dataset.fcOnflipright]:null;
+			flashcard.functions.onFlipLeft = front.dataset.fcOnflipleft ? window[front.dataset.fcOnflipleft]:null;
 
 			this.push(flashcard);
 		}
@@ -436,7 +435,7 @@ fc.Stack.prototype.push = function(flashcard) {
 	this.fc_cards.push(flashcard);
 
 	if (this.fc_cards.length <= 1) {
-		this.holder.style.display = '';
+		this.outerHolder.style.display = '';
 		this.resize();
 
 		if (this.usingCanvas) {
@@ -452,7 +451,7 @@ fc.Stack.prototype.push = function(flashcard) {
 // Pop card from stack
 fc.Stack.prototype.pop = function() {
 	if (this.fc_cards.length <= 1) {
-		this.holder.style.display = 'none';
+		this.outerHolder.style.display = 'none';
 	}
 	return this.fc_cards.pop();
 }
@@ -470,8 +469,8 @@ fc.Stack.prototype.load = function() {
 // Resize flashcards while maintaining aspect ratio
 fc.Stack.prototype.resize = function() {
 	with (this) {
-		var h = holder.clientHeight;
-		var w = holder.clientWidth;
+		var h = innerHolder.clientHeight;
+		var w = innerHolder.clientWidth;
 
 		if (h*aspectRatio > w)
 			h = w/aspectRatio;
@@ -548,20 +547,22 @@ fc.Stack.prototype.setSize = function(x, y) {
 fc.Stack.prototype.showPrevCard = function() {
 	with (this) {
 		cur = (cur + fc_cards.length - 1) % fc_cards.length;
-		if (usingCanvas)
-			draw();
-		else
-			load();
+
+		if (usingCanvas) draw();
+		else             load();
+
+		this.onChange(this, fc.MOVEMENT.ENTER);
 	}
 }
 // Switch to, and draw, the next card
 fc.Stack.prototype.showNextCard = function() {
 	with (this) {
 		cur = (cur + 1) % fc_cards.length;
-		if (usingCanvas)
-			draw();
-		else
-			load();
+
+		if (usingCanvas) draw();
+		else             load();
+
+		this.onChange(this, fc.MOVEMENT.ENTER);
 	}
 }
 

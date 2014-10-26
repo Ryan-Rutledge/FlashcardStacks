@@ -16,22 +16,23 @@
 				line-height: 1.4em;
 				margin: 0; padding: 0;
 			}
-			body {
+			body, input {
 				background-color: #3d3c3a;
 				color: #ffffff;
 				font-family: sans-serif;
 			}
-			span {
+			span, input {
 				display: table-cell;
 				font-size: 1.5em;
 				vertical-align: middle;
 			}
+			input {border: none; width: 50%;}
 			.fc_container {
 				float: left;
 				position: relative;
 				height: 50%; width: 50%;
 				border: 2px solid #707070;
-				padding: 1em;
+				box-sizing: border-box;
 			}
 			.fc_content {
 				display: table;
@@ -51,20 +52,22 @@
 	<body onload="init()">
 		<!-- words stack -->
 		<div id="words" class="fc_container" data-fc-width="600" data-fc-height="300" data-fc-arrowkeys data-fc-tilt data-fc-swipe>
-			<!-- First Card -->
 			<div class="fc_content one">
+				<!-- Front of card one -->
 				<span>2:1 Ratio</span>
 			</div>
 			<div class="fc_content one">
+				<!-- Back of card one -->
 				<p>This is a &lt;p&gt; tag. It contains ten different words!</p>
 			</div>
 
-			<!-- Second Card -->
-			<div class="fc_content two" data-fc-flipDown="changeText">
+			<div class="fc_content two" data-fc-onFlipDown="changeText">
+				<!-- Front of card two -->
 				<p>What do you want the back of this card to say?</p>
 				<input name="say" onchange="fc.stacks['words'].flipCard();" autocomplete="off" maxlength="25" type="text" /><br />
 			</div>
 			<div class="fc_content two">
+				<!-- Back of card two -->
 				<span id="backSpan">2<sup>nd</sup> Card</span>
 			</div>
 
@@ -95,16 +98,15 @@
 				document.activeElement = document.body
 			}
 
+			// Draw text in center of canvas
 			function drawCenter(text, ctx) {
 				var w = ctx.canvas.width / 2;
 				var h = ctx.canvas.height / 2;
 
-				// Number
 				ctx.fillStyle = '#333';
 				ctx.textAlign = 'center';
 				ctx.textBaseline = 'middle';
 				ctx.fillText(text, w, h);
-
 			}
 
 			/******************************
@@ -187,27 +189,21 @@
 			 ******************************/
 
 			 function init() {
-				// Array of Color objects
-				var colors = [
-					new Color('Green'),
-					new Color('Blue'),
-					new Color('Purple')
-				]
-
-				// Array of Integer objects
-				var integers = [
-					new Integer(1, 'One'),
-					new Integer(2, 'Two'),
-					new Integer(3, 'Three'),
-					new Integer(4, 'Four'),
-					new Integer(5, 'Five'),
-					new Integer(6, 'Six'),
-				]
-
 				// Load flashcards onto webpage
 				fc.init({
-					'integers': integers,
-					'colors': colors
+					'integers': [
+						new Integer(1, 'One'),
+						new Integer(2, 'Two'),
+						new Integer(3, 'Three'),
+						new Integer(4, 'Four'),
+						new Integer(5, 'Five'),
+						new Integer(6, 'Six'),
+					],
+					'colors': [
+						new Color('Green'),
+						new Color('Blue'),
+						new Color('Purple')
+					]
 				});
 			 }
 		</script>
