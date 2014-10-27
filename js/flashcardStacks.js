@@ -2,7 +2,6 @@
  * fc class                   *
  ******************************/
 var fc = {
-	// 
 	FLIP_TIME: 400, // Length of card flip animation 
 	CHANGE_TIME: 500, // Length of card change animation
 	SWIPE_DISTANCE: 0.15, // Percentage of flashcard width required to flip a card
@@ -126,11 +125,14 @@ var fc = {
 
 		// If 3d animations are supported
 		if (fc.animationIsSupported) {
-			// Flip flash card over
+			// Flip flashcard over
 			fc.Stack.prototype.flipCard = function(direction) {
 				if (!this.animating) {
 					this.animating = true;
 					var thisStack = this
+
+					thisStack.card.classList.remove('fc_animateTilt');
+					thisStack.outerHolder.classList.remove('fc_animateTilt');
 
 					// Switch facedown and faceup css classes after animation finishes
 					if (this.isFaceUp) {
@@ -177,6 +179,9 @@ var fc = {
 					this.animating = true;
 					var thisStack = this;
 
+					thisStack.card.classList.remove('fc_animateTilt');
+					thisStack.outerHolder.classList.remove('fc_animateTilt');
+
 					thisStack.onChange(fc.MOVEMENT.LEAVE);
 
 					// Add appropriate css move class, and remove when animation is finished
@@ -187,7 +192,10 @@ var fc = {
 							var t1 = setTimeout(function() {
 								thisStack.showNextCard();
 							}, fc.CHANGE_TIME/2);
-							var t2 = setTimeout(function() {thisStack.outerHolder.classList.remove('fc_moveUp'); thisStack.animating = false;}, fc.CHANGE_TIME);
+							var t2 = setTimeout(function() {
+								thisStack.outerHolder.classList.remove('fc_moveUp');
+								thisStack.animating = false;
+							}, fc.CHANGE_TIME);
 
 							break;
 						default:
@@ -197,10 +205,12 @@ var fc = {
 								thisStack.showPrevCard(thisStack);
 							}, fc.CHANGE_TIME/2);
 
-							var t2 = setTimeout(function() {thisStack.outerHolder.classList.remove('fc_moveDown'); thisStack.animating = false;}, fc.CHANGE_TIME);
+							var t2 = setTimeout(function() {
+								thisStack.outerHolder.classList.remove('fc_moveDown');
+								thisStack.animating = false;
+							}, fc.CHANGE_TIME);
 							break;
 					}
-
 				}
 			}
 
@@ -211,7 +221,7 @@ var fc = {
 				fc.stacks[key].card.classList.add('fc_noAnimation');
 			}
 
-			// Flip flash card over
+			// Flip flashcard over
 			fc.Stack.prototype.flipCard = function(direction) {
 				this.card.classList.toggle('fc_facedown');
 				this.card.classList.toggle('fc_faceup');
@@ -640,6 +650,10 @@ fc.Stack.prototype.touchmove = function(e) {
 		if (dist > this.swipeDist) {
 			e.preventDefault();
 			var swipeDir = fc.swipeDirection(fc.touchX, fc.touchY, curX, curY);
+
+			card.classList.add('fc_animateTilt');
+			holder.classList.add('fc_animateTilt');
+
 			// If direction of swipe has changed
 			if (fc.prevDir != swipeDir) {
 				fc.prevDir = swipeDir;
@@ -676,11 +690,12 @@ fc.Stack.prototype.touchmove = function(e) {
 				}
 			}
 		}
-		else if (e.prevDir !== null) {
+		else if (fc.prevDir !== null) {
 			card.classList.remove('fc_tiltLeft');
 			card.classList.remove('fc_tiltRight');
 			holder.classList.remove('fc_tiltUp');
 			holder.classList.remove('fc_tiltDown');
+			fc.prevDir = null;
 		}
 	}
 }

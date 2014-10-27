@@ -1,25 +1,20 @@
-.fc_container, .fc_outerHolder .fc_innerHolder, .fc_card, .fc_side, .fc_content { 
-	padding 0; margin: 0;
-}
+.fc_container, .fc_outerHolder .fc_innerHolder, .fc_card, .fc_side, .fc_content {padding 0; margin: 0;}
+.fc_outerHolder, .fc_innerHolder, .fc_side, .fc_content {width: 100%; height: 100%;}
+.fc_container, .fc_content {overflow: hidden;}
+.fc_outerHolder {padding: 1%;}
+.fc_outerHolder, .fc_innerHolder {position: relative;}
 
-.fc_container {
-	overflow: hidden;
-}
-
-.fc_outerHolder {
+.fc_outerHolder, .fc_content {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
 	box-sizing: border-box;
-	padding: 1%;
 }
 
-.fc_outerHolder, .fc_innerHolder {
-	width: 100%;
-	height: 100%;
-	position: relative;
-}
 
 .fc_innerHolder {
 	-webkit-perspective: 1000px;
 	-moz-perspective: 1000px;
+	-o-perspective: 1000px;
 	perspective: 1000px;
 }
 
@@ -29,17 +24,17 @@
 	margin: auto;
 
 	-webkit-transform-style: preserve-3d;
+	-moz-transform-style: preserve-3d;
 	-ms-transform-style: preserve-3d;
 	transform-style: preserve-3d;
 }
 
 .fc_side {
 	display: block;
-	width: 100%;
-	height: 100%;
 	position: absolute;
 
 	-webkit-backface-visibility: hidden;
+	-moz-backface-visibility: hidden;
 	-ms-backface-visibility: hidden;
 	backface-visibility: hidden;
 }
@@ -59,15 +54,9 @@ canvas.fc_side {
 	border-radius: 3px;
 }
 
-.fc_content {
-	width: 100%;
-	height: 100%;
-	overflow: hidden;
-	box-sizing: border-box;
-	background-color: #fff;
-}
+.fc_content {background-color: #fff;}
 
-.fc_flipLeft, .fc_tiltLeft, .fc_flipRight, .fc_tiltRight, .fc_tiltUp, .fc_tiltDown {
+.fc_flipLeft, .fc_flipRight, .fc_animateTilt {
 	-webkit-transition: -webkit-transform 0.4s ease-out;
 	transition: transform 0.5s ease-out;
 }
@@ -139,15 +128,9 @@ canvas.fc_side {
 	-ms-backface-visibility: visible;
 	backface-visibility: visible;
 }
-.fc_noAnimation > .fc_back {
-	display: none;
-}
-.fc_noAnimation.fc_facedown > .fc_back {
-	display: block;
-}
-.fc_noAnimation.fc_facedown > .fc_front {
-	display: none;
-}
+.fc_noAnimation > .fc_back {display: none;}
+.fc_noAnimation.fc_facedown > .fc_back {display: block;}
+.fc_noAnimation.fc_facedown > .fc_front {display: none;}
 
 .fc_moveUp {
 	-webkit-animation: fc_gotoPrevCard 0.5s;
