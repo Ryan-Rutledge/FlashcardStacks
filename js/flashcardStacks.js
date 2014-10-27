@@ -3,7 +3,7 @@
  ******************************/
 var fc = {
 	FLIP_TIME: 400, // Length of card flip animation 
-	CHANGE_TIME: 500, // Length of card change animation
+	SWITCH_TIME: 500, // Duration of card switching animation
 	SWIPE_DISTANCE: 0.15, // Percentage of flashcard width required to flip a card
 	MOVEMENT: {LEFT: 0, UP: 1, RIGHT: 2, DOWN: 3, ENTER: 4, LEAVE: 5}, // Direction enum
 
@@ -30,67 +30,104 @@ var fc = {
 			fc.stacks[key].resize();
 	},
 
-	// Set touch/mouse movement listeners
-	tiltListener: function() {
-		// Touchmove
-		window.addEventListener('touchmove', function(e) {
-			if (fc.touchedStack && fc.touchedStack.tiltEnabled) {
-				e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-				fc.touchedStack.touchmove(e);
-			}
-		});
-
-		// Mousemove
-		window.addEventListener('mousemove', function(e) {
-			if (fc.touchedStack && fc.touchedStack.tiltEnabled) {
-				e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-				fc.touchedStack.touchmove(e);
-			}
-		});
+	// Sets touch/mousedown event variables
+	touchstart: function(e) {
+		fc.touchX = e.touches[0].pageX;
+		fc.touchY = e.touches[0].pageY;
 	},
 
-	// Set mouse drag listener for stacks
-	dragListener: function(stacks) {
-		for (var s in stacks)
-			stacks[s].dragListener();
+	// Moves card based on cursor/pointer movement
+	touchend: function(e) {
+		if (fc.touchX != null && fc.touchY != null) {
+			var endX = e.changedTouches[0].pageX;
+			var endY = e.changedTouches[0].pageY;
 
-		// MouseUp
-		window.addEventListener('mouseup', function(e) {
-			if (fc.touchedStack) {
-				e.changedTouches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-				fc.touchedStack.touchend(e);
+			// If swipe length is long enough
+			if (Math.abs(endX - fc.touchX) > fc.touchedStack.swipeDist || Math.abs(endY - fc.touchY) > fc.touchedStack.swipeDist) {
+				e.preventDefault();
+				fc.touchedStack.moveCard(fc.swipeDirection(fc.touchX, fc.touchY, endX, endY));
 			}
-			fc.touchedStack = false;
-		});
+		}
+
+		fc.resetTouchEvent();
 	},
 
-	// Set click listener for stacks
-	clickListener: function(stacks) {
-		for (var s in stacks)
-			stacks[s].clickListener();
-	},
+	// Resets touch variables
+	resetTouchEvent: function() {
+		fc.touchX = null;
+		fc.touchY = null;
+		fc.prevDir = null;
 
-	// Set touch listeners for stacks
-	swipeListener: function(stacks) {
-		for (var s in stacks)
-			stacks[s].swipeListener();
-
-		// Touchend
-		window.addEventListener('touchend', function(e) {
-			if (fc.touchedStack) {
-				fc.touchedStack.touchend(e);
+		if (fc.touchedStack)
+			with (fc.touchedStack) {
+				card.classList.remove('fc_tiltLeft');
+				card.classList.remove('fc_tiltRight');
+				outerHolder.classList.remove('fc_tiltUp');
+				outerHolder.classList.remove('fc_tiltDown');
 			}
-			fc.touchedStack = false;
-		});
 	},
 
-	// Set keydown listener for stacks
-	arrowkeyListener: function(stacks) {
-			window.addEventListener('keydown', function(e) {
-				if (e.which >= 37 && e.which <= 40)
-					for (var s in stacks)
-						stacks[s].moveCard(e.which - 37);
-			}, false);
+	// Tilts card based on mouse/pointer movement
+	touchmove: function(e) {
+		if (fc.touchX != null && fc.touchY != null) {
+			var card = fc.touchedStack.card;
+			var holder = fc.touchedStack.outerHolder;
+			var curX = e.touches[0].pageX;
+			var curY = e.touches[0].pageY;
+			var dist = Math.max(Math.abs(curX - fc.touchX), Math.abs(curY - fc.touchY));
+
+			// If length of swipe is long enough
+			if (dist > fc.touchedStack.swipeDist) {
+				e.preventDefault();
+				var swipeDir = fc.swipeDirection(fc.touchX, fc.touchY, curX, curY);
+
+				card.classList.add('fc_animateTilt');
+				holder.classList.add('fc_animateTilt');
+
+				// If direction of swipe has changed
+				if (fc.prevDir != swipeDir) {
+					fc.prevDir = swipeDir;
+
+					switch (swipeDir) {
+						case fc.MOVEMENT.LEFT:
+							card.classList.remove('fc_tiltRight');
+							holder.classList.remove('fc_tiltUp');
+							holder.classList.remove('fc_tiltDown');
+
+							card.classList.add('fc_tiltLeft');
+							break;
+						case fc.MOVEMENT.RIGHT:
+							card.classList.remove('fc_tiltLeft');
+							holder.classList.remove('fc_tiltUp');
+							holder.classList.remove('fc_tiltDown');
+
+							card.classList.add('fc_tiltRight');
+							break;
+						case fc.MOVEMENT.UP:
+							card.classList.remove('fc_tiltLeft');
+							card.classList.remove('fc_tiltRight');
+							holder.classList.remove('fc_tiltDown');
+
+							holder.classList.add('fc_tiltUp');
+							break
+						default:
+							card.classList.remove('fc_tiltLeft');
+							card.classList.remove('fc_tiltRight');
+							holder.classList.remove('fc_tiltUp');
+
+							holder.classList.add('fc_tiltDown');
+							break;
+					}
+				}
+			}
+			else if (fc.prevDir !== null) {
+				card.classList.remove('fc_tiltLeft');
+				card.classList.remove('fc_tiltRight');
+				holder.classList.remove('fc_tiltUp');
+				holder.classList.remove('fc_tiltDown');
+				fc.prevDir = null;
+			}
+		}
 	},
 
 	// Create flashcard stacks
@@ -106,11 +143,8 @@ var fc = {
 		fc.resize();
 		window.addEventListener('resize', fc.resize);
 
-		// Get layout engine info
-		var LE = 'webkitTransform' in document.body.style ?  'webkit' :'MozTransform' in document.body.style ?  'Moz':'';
-		// Check for flip effect support
-		fc.animationIsSupported = ((LE === '' ? 'b':LE + 'B') + 'ackfaceVisibility') in document.body.style;
-
+		// Set touch variables to default
+		fc.resetTouchEvent();
 
 		// Load parameter objects
 		for (var key in objectStacks) {
@@ -119,16 +153,21 @@ var fc = {
 					fc.stacks[key].push(new fc.FlashCard(objectStacks[key][o]));
 			else 
 				for (var o in objectStacks[key])
-					fc.stacks[key].fc_cars[o].functions = objectStacks[key][o];
+					fc.stacks[key].fc_cars[o].events = objectStacks[key][o];
 
 		}
 
+		// Get layout engine info
+		var LE = 'webkitTransform' in document.body.style ?  'webkit' :'MozTransform' in document.body.style ?  'Moz':'';
+		// Check for flip effect support
+		var animationIsSupported = ((LE === '' ? 'b':LE + 'B') + 'ackfaceVisibility') in document.body.style;
+
 		// If 3d animations are supported
-		if (fc.animationIsSupported) {
+		if (animationIsSupported) {
 			// Flip flashcard over
 			fc.Stack.prototype.flipCard = function(direction) {
-				if (!this.animating) {
-					this.animating = true;
+				if (!this.isAnimating) {
+					this.isAnimating = true;
 					var thisStack = this
 
 					thisStack.card.classList.remove('fc_animateTilt');
@@ -158,31 +197,31 @@ var fc = {
 						thisStack.card.classList.add('fc_flipLeft');
 						var t2 = setTimeout(function() {
 							thisStack.card.classList.remove('fc_flipLeft');
-							thisStack.animating = false;
+							thisStack.isAnimating = false;
 						}, fc.FLIP_TIME);
 					}
 					else {
 						thisStack.card.classList.add('fc_flipRight');
 						var t2 = setTimeout(function() {
 							thisStack.card.classList.remove('fc_flipRight');
-							thisStack.animating = false;
+							thisStack.isAnimating = false;
 						}, fc.FLIP_TIME);
 					}
 
-					thisStack.onFlip(direction);
+					thisStack.handleFlip(direction);
 				}
 			} 
 
-			// Change to adjacent card
-			fc.Stack.prototype.changeCard = function(direction) {
-				if (!this.animating) {
-					this.animating = true;
+			// Switch to adjacent card
+			fc.Stack.prototype.switchCard = function(direction) {
+				if (!this.isAnimating) {
+					this.isAnimating = true;
 					var thisStack = this;
 
 					thisStack.card.classList.remove('fc_animateTilt');
 					thisStack.outerHolder.classList.remove('fc_animateTilt');
 
-					thisStack.onChange(fc.MOVEMENT.LEAVE);
+					thisStack.handleSwitch(fc.MOVEMENT.LEAVE);
 
 					// Add appropriate css move class, and remove when animation is finished
 					switch (direction) {
@@ -191,11 +230,11 @@ var fc = {
 
 							var t1 = setTimeout(function() {
 								thisStack.showNextCard();
-							}, fc.CHANGE_TIME/2);
+							}, fc.SWITCH_TIME/2);
 							var t2 = setTimeout(function() {
 								thisStack.outerHolder.classList.remove('fc_moveUp');
-								thisStack.animating = false;
-							}, fc.CHANGE_TIME);
+								thisStack.isAnimating = false;
+							}, fc.SWITCH_TIME);
 
 							break;
 						default:
@@ -203,18 +242,16 @@ var fc = {
 
 							var t1 = setTimeout(function() {
 								thisStack.showPrevCard(thisStack);
-							}, fc.CHANGE_TIME/2);
+							}, fc.SWITCH_TIME/2);
 
 							var t2 = setTimeout(function() {
 								thisStack.outerHolder.classList.remove('fc_moveDown');
-								thisStack.animating = false;
-							}, fc.CHANGE_TIME);
+								thisStack.isAnimating = false;
+							}, fc.SWITCH_TIME);
 							break;
 					}
 				}
 			}
-
-			if (fc.tiltStacks.length) fc.tiltListener();
 		}
 		else { // If 3d animations are not supported
 			for (var key in fc.stacks) {
@@ -226,12 +263,12 @@ var fc = {
 				this.card.classList.toggle('fc_facedown');
 				this.card.classList.toggle('fc_faceup');
 				this.isFaceUp = !this.isFaceUp;
-				this.onFlip(direction);
+				this.handleFlip(direction);
 			} 
 
-			// Change to adjacent card
-			fc.Stack.prototype.changeCard = function(direction) {
-				this.onChange(this, fc.MOVEMENT.LEAVE);
+			// Switch to adjacent card
+			fc.Stack.prototype.switchCard = function(direction) {
+				this.handleSwitch(this, fc.MOVEMENT.LEAVE);
 
 				if (direction === fc.MOVEMENT.UP)
 					this.showNextCard();
@@ -240,10 +277,107 @@ var fc = {
 			}
 		}
 
-		if (fc.dragStacks.length) fc.dragListener(fc.dragStacks);
-		if (fc.clickStacks.length) fc.clickListener(fc.clickStacks);
-		if (fc.swipeStacks.length) fc.swipeListener(fc.swipeStacks);
-		if (fc.arrowkeyStacks.length) fc.arrowkeyListener(fc.arrowkeyStacks);
+		// Listener class
+		var setListener = {
+			// Set touch/mouse movement listeners
+			tilt: function() {
+				// Touchmove
+				window.addEventListener('touchmove', function(e) {
+					if (fc.touchedStack && fc.touchedStack.enabled.tilt) {
+						e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+						fc.touchmove(e);
+					}
+				});
+
+				// Mousemove
+				window.addEventListener('mousemove', function(e) {
+					if (fc.touchedStack && fc.touchedStack.enabled.tilt) {
+						e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+						fc.touchmove(e);
+					}
+				});
+			},
+
+			// Set mouse drag listener for stacks
+			drag: function(stacks) {
+				for (var s in stacks)
+					setListener.dragStack(stacks[s]);
+
+				// MouseUp
+				window.addEventListener('mouseup', function(e) {
+					if (fc.touchedStack) {
+						e.changedTouches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+						fc.touchend(e);
+					}
+					fc.touchedStack = false;
+				});
+			},
+
+			// Set click listener for stacks
+			click: function(stacks) {
+				for (var s in stacks)
+					setListener.clickStack(stacks[s]);
+			},
+
+			// Set click listener for individual stack
+			clickStack: function(stack) {
+				stack.card.addEventListener('click', function(e) {
+					stack.flipCard();
+				});
+			},
+
+			// Set mousedown listener for individual stack
+			dragStack: function(stack) {
+				// MouseDown
+				stack.card.addEventListener('mousedown', function(e) {
+					fc.touchedStack = stack;
+					e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
+					fc.touchstart(e);
+				});
+			},
+
+			// Set touch listeners for stacks
+			swipe: function(stacks) {
+				for (var s in stacks)
+					setListener.swipeStack(stacks[s]);
+
+				// Touchend
+				window.addEventListener('touchend', function(e) {
+					if (fc.touchedStack) fc.touchend(e);
+					fc.touchedStack = false;
+				});
+			},
+
+			// Set touchstart/end listeners for individual stack
+			swipeStack: function(stack) {
+				// Touchstart
+				stack.card.addEventListener('touchstart', function(e) {
+					fc.touchedStack = stack;
+					fc.touchstart(e);
+				});
+
+				// Touchend
+				stack.card.addEventListener('touchend', function(e) {
+					fc.touchend(e);
+				});
+			},
+
+			// Set keydown listener for stacks
+			arrowkeys: function(stacks) {
+					window.addEventListener('keydown', function(e) {
+						if (e.which >= 37 && e.which <= 40)
+							for (var s in stacks)
+								stacks[s].moveCard(e.which - 37);
+					}, false);
+			}
+		};
+
+		// Add listeners
+		if (animationIsSupported && fc.tiltStacks.length) setListener.tilt();
+		if (fc.dragStacks.length) setListener.drag(fc.dragStacks);
+		if (fc.clickStacks.length) setListener.click(fc.clickStacks);
+		if (fc.swipeStacks.length) setListener.swipe(fc.swipeStacks);
+		if (fc.arrowkeyStacks.length) setListener.arrowkeys(fc.arrowkeyStacks);
 	}
 }
 
@@ -254,10 +388,10 @@ var fc = {
 // FlashCard constructor
 fc.FlashCard = function() {
 	if (arguments.length == 1) {
-		this.functions = arguments[0];
+		this.events = arguments[0];
 	}
 	else {
-		this.functions = {};
+		this.events = {};
 		this.sides = arguments;
 	}
 },
@@ -265,10 +399,10 @@ fc.FlashCard = function() {
 // Draw sides of card
 fc.FlashCard.prototype.draw = function(front, back) {
 	with (this) {
-		if (functions) {
-			if (functions.drawFront)
+		if (events) {
+			if (events.drawFront)
 				drawFront(front.getContext('2d'));
-			if (functions.drawBack)
+			if (events.drawBack)
 				drawBack(back.getContext('2d'));
 		}
 	}
@@ -280,49 +414,49 @@ fc.FlashCard.prototype.preDraw = function(ctx) {
 // Draws front of flashcard
 fc.FlashCard.prototype.drawFront = function(ctx) {
 	this.preDraw(ctx);
-	this.functions.drawFront(ctx);
+	this.events.drawFront(ctx);
 }
 // Draws back of flashcard
 fc.FlashCard.prototype.drawBack = function(ctx) {
 	this.preDraw(ctx);
-	this.functions.drawBack(ctx);
+	this.events.drawBack(ctx);
 }
 
 // Called every time card is flipped
-fc.FlashCard.prototype.onFlip = function(stack, direction) {
-	if (this.functions.onFlip)
-		this.functions.onFlip(stack);
+fc.FlashCard.prototype.handleFlip = function(stack, direction) {
+	if (this.events.onFlip)
+		this.events.onFlip(stack);
 
 	if (stack.isFaceUp) {
-		if (this.functions.onFlipUp) {
-			this.functions.onFlipUp(stack);
+		if (this.events.onFlipUp) {
+			this.events.onFlipUp(stack);
 		}
 	}
-	else if (this.functions.onFlipDown) {
-		this.functions.onFlipDown(stack);
+	else if (this.events.onFlipDown) {
+		this.events.onFlipDown(stack);
 	}
 
 	if (direction === fc.MOVEMENT.RIGHT) {
-		if (this.functions.onFlipRight)
-			this.functions.onFlipRight(stack);
+		if (this.events.onFlipRight)
+			this.events.onFlipRight(stack);
 	}
-	else if (this.functions.onFlipLeft) {
-			this.functions.onFlipLeft(stack);
+	else if (this.events.onFlipLeft) {
+			this.events.onFlipLeft(stack);
 	}
 }
 
-// Called every time card is changed
-fc.FlashCard.prototype.onChange = function(stack, movement) {
+// Called every time card is switched
+fc.FlashCard.prototype.handleSwitch = function(stack, movement) {
 	if (movement === fc.MOVEMENT.LEAVE) {
-		if (this.functions.onChange)
-			this.functions.onChange(stack);
+		if (this.events.onSwitch)
+			this.events.onSwitch(stack);
 
-		if (this.functions.onLeave)
-			this.functions.onLeave(stack);
+		if (this.events.onLeave)
+			this.events.onLeave(stack);
 
 	}
-	else if (this.functions.onEnter) {
-		this.functions.onEnter(stack);
+	else if (this.events.onEnter) {
+		this.events.onEnter(stack);
 	}
 }
 /******************************
@@ -331,97 +465,100 @@ fc.FlashCard.prototype.onChange = function(stack, movement) {
 
 // Stack constructor
 fc.Stack = function(container) {
-	this.container = container;
-	this.cur = 0; // Index of current card
-	this.fc_cards = []; // Empty stack of cards
-	this.swipeDist = 1;
-	this.isFaceUp = true;
+	var self = this;
+	self.container = container;
+	self.fc_cards = []; // Empty stack of cards
+	self.swipeDist = 1;
+	self.isFaceUp = true;
+	cur = 0; // Index of current card
 
 	// Check which listeners are enabled
-	this.tiltEnabled = container.getAttribute('fc-tilt') === '';
-	this.dragEnabled = container.getAttribute('fc-drag') === '';
-	this.clickEnabled = container.getAttribute('fc-click') === '';
-	this.swipeEnabled = container.getAttribute('fc-swipe') === '';
-	this.arrowkeysEnabled = container.getAttribute('fc-arrowkeys') === '';
+	self.enabled = {};
+	self.enabled.tilt = container.getAttribute('fc-enableTilt') === '';
+	self.enabled.drag = container.getAttribute('fc-enableDrag') === '';
+	self.enabled.click = container.getAttribute('fc-enableClick') === '';
+	self.enabled.swipe = container.getAttribute('fc-enableSwipe') === '';
+	self.enabled.arrowkeys = container.getAttribute('fc-enableArrowkeys') === '';
 
 	// If no fc attributes are provided, enable everything
-	if (!(this.tiltEnabled || this.dragEnabled || this.clickEnabled || this.swipeEnabled || this.arrowkeysEnabled))
-		this.tiltEnabled = this.dragEnabled = this.clickEnabled = this.swipeEnabled = this.arrowkeysEnabled = true;
+	if (!(self.enabled.tilt || self.enabled.drag || self.enabled.click || self.enabled.swipe || self.enabled.arrowkeys))
+		self.enabled.tilt = self.enabled.drag = self.enabled.click = self.enabled.swipe = self.enabled.arrowkeys = true;
 
-	// Add this stack to appropriate arrays
-	if (this.tiltEnabled) fc.tiltStacks.push(this);
-	if (this.dragEnabled) fc.dragStacks.push(this);
-	if (this.clickEnabled) fc.clickStacks.push(this);
-	if (this.swipeEnabled) fc.swipeStacks.push(this);
-	if (this.arrowkeysEnabled) fc.arrowkeyStacks.push(this);
+	// Add self stack to appropriate arrays
+	if (self.enabled.tilt) fc.tiltStacks.push(self);
+	if (self.enabled.drag) fc.dragStacks.push(self);
+	if (self.enabled.click) fc.clickStacks.push(self);
+	if (self.enabled.swipe) fc.swipeStacks.push(self);
+	if (self.enabled.arrowkeys) fc.arrowkeyStacks.push(self);
 
-	this.scalingEnabled = container.getAttribute('fc-scale') === '';
+	self.enabled.scaling = container.getAttribute('fc-enableCanvasScale') === '';
 
-	// Assign stack functions
-	this.functions = {};
-	this.functions.onChange = window[container.getAttribute('fc-onChange')];
-	this.functions.onEnter = window[container.getAttribute('fc-onEnter')];
-	this.functions.onLeave = window[container.getAttribute('fc-onLeave')];
-	this.functions.onFlip = window[container.getAttribute('fc-onFlip')];
-	this.functions.onFlipUp = window[container.getAttribute('fc-onFlipup')];
-	this.functions.onFlipDown = window[container.getAttribute('fc-onFlipdown')];
-	this.functions.onFlipRight = window[container.getAttribute('fc-onFlipright')];
-	this.functions.onFlipLeft = window[container.getAttribute('fc-onFlipleft')];
+	// Assign stack event functions
+	self.events = {};
+	self.events.onSwitch = window[container.getAttribute('fc-onSwitch')];
+	self.events.onEnter = window[container.getAttribute('fc-onEnter')];
+	self.events.onLeave = window[container.getAttribute('fc-onLeave')];
+	self.events.onFlip = window[container.getAttribute('fc-onFlip')];
+	self.events.onFlipUp = window[container.getAttribute('fc-onFlipUp')];
+	self.events.onFlipDown = window[container.getAttribute('fc-onFlipDown')];
+	self.events.onFlipRight = window[container.getAttribute('fc-onFlipRight')];
+	self.events.onFlipLeft = window[container.getAttribute('fc-onFlipLeft')];
+
 
 	// Create card element
-	this.card = document.createElement('div');
+	self.card = document.createElement('div');
 
 	// Set front and back of flashcard
 	var elements = container.getElementsByClassName('fc_content');
 	if (elements.length) {
-		this.usingCanvas = false;
-		this.front = document.createElement('div');
-		this.back = document.createElement('div');
+		self.usingCanvas = false;
+		self.front = document.createElement('div');
+		self.back = document.createElement('div');
 	}
 	else {
-		this.usingCanvas = true;
-		this.front = document.createElement('canvas');
-		this.back = document.createElement('canvas');
+		self.usingCanvas = true;
+		self.front = document.createElement('canvas');
+		self.back = document.createElement('canvas');
 	}
 
 	// Add classes to front and back
-	this.front.classList.add('fc_side');
-	this.front.classList.add('fc_front');
-	this.back.classList.add('fc_side');
-	this.back.classList.add('fc_back');
+	self.front.classList.add('fc_side');
+	self.front.classList.add('fc_front');
+	self.back.classList.add('fc_side');
+	self.back.classList.add('fc_back');
 
-	with (this.card) {
+	with (self.card) {
 		// Add card classes
 		classList.add('fc_card');
 		classList.add('fc_faceup');
 
 		// Append front and back
-		appendChild(this.front);
-		appendChild(this.back);
+		appendChild(self.front);
+		appendChild(self.back);
 	}
 
 
 	// Create inner element for translation animation
-	this.innerHolder = document.createElement('div');
-	this.innerHolder.appendChild(this.card);
-	this.innerHolder.classList.add('fc_innerHolder');
+	self.innerHolder = document.createElement('div');
+	self.innerHolder.appendChild(self.card);
+	self.innerHolder.classList.add('fc_innerHolder');
 
 	// Create outer element for translation animation
-	this.outerHolder = document.createElement('div');
-	this.outerHolder.appendChild(this.innerHolder);
-	this.outerHolder.style.display = 'none';
-	this.outerHolder.classList.add('fc_outerHolder');
-	container.appendChild(this.outerHolder);
+	self.outerHolder = document.createElement('div');
+	self.outerHolder.appendChild(self.innerHolder);
+	self.outerHolder.style.display = 'none';
+	self.outerHolder.classList.add('fc_outerHolder');
+	container.appendChild(self.outerHolder);
 
 	// Set dimensions
-	if (container.getAttribute('fc-margin')) this.outerHolder.style.padding = container.getAttribute('fc-margin');
-	this.front.height = this.back.height = container.getAttribute('fc-height') ? container.getAttribute('fc-height'):400;
-	this.front.width = this.back.width = container.getAttribute('fc-width') ? container.getAttribute('fc-width'):600;
-	this.card.style.height = this.front.height + 'px';
-	this.card.style.width = this.front.width + 'px';
-	this.aspectRatio = this.front.width / this.front.height;
+	if (container.getAttribute('fc-margin')) self.outerHolder.style.padding = container.getAttribute('fc-margin');
+	self.front.height = self.back.height = container.getAttribute('fc-height') ? container.getAttribute('fc-height'):400;
+	self.front.width = self.back.width = container.getAttribute('fc-width') ? container.getAttribute('fc-width'):600;
+	self.card.style.height = self.front.height + 'px';
+	self.card.style.width = self.front.width + 'px';
+	self.aspectRatio = self.front.width / self.front.height;
 
-	if (!this.usingCanvas) {
+	if (!self.usingCanvas) {
 		for (var i = 0; i < elements.length; i+=2) {
 			var front = container.firstElementChild;
 			container.removeChild(front);
@@ -431,20 +568,59 @@ fc.Stack = function(container) {
 			
 			var flashcard = new fc.FlashCard(front, back)
 
-			flashcard.functions.onChange = window[front.getAttribute('fc-onChange')];
-			flashcard.functions.onEnter = window[front.getAttribute('fc-onEnter')];
-			flashcard.functions.onLeave = window[front.getAttribute('fc-onLeave')];
-			flashcard.functions.onFlip = window[front.getAttribute('fc-onFlip')];
-			flashcard.functions.onFlipUp = window[front.getAttribute('fc-onFlipup')];
-			flashcard.functions.onFlipDown = window[front.getAttribute('fc-onFlipdown')];
-			flashcard.functions.onFlipRight = window[front.getAttribute('fc-onFlipright')];
-			flashcard.functions.onFlipLeft = window[front.getAttribute('fc-onFlipleft')];
+			flashcard.events.onSwitch = window[front.getAttribute('fc-onSwitch')];
+			flashcard.events.onEnter = window[front.getAttribute('fc-onEnter')];
+			flashcard.events.onLeave = window[front.getAttribute('fc-onLeave')];
+			flashcard.events.onFlip = window[front.getAttribute('fc-onFlip')];
+			flashcard.events.onFlipUp = window[front.getAttribute('fc-onFlipUp')];
+			flashcard.events.onFlipDown = window[front.getAttribute('fc-onFlipDown')];
+			flashcard.events.onFlipRight = window[front.getAttribute('fc-onFlipRight')];
+			flashcard.events.onFlipLeft = window[front.getAttribute('fc-onFlipLeft')];
 
-			this.push(flashcard);
+			self.push(flashcard);
 		}
-
-		this.resetTouchEvent();
 	}
+
+
+	// Private functions
+
+	// Loads content-based flashcard into stack
+	function load() {
+		self.front.removeChild(self.front.firstElementChild);
+		self.back.removeChild(self.back.firstElementChild);
+		self.front.appendChild(self.curCard().sides[0]);
+		self.back.appendChild(self.curCard().sides[1]);
+	};
+
+
+	// Privileged functions
+
+	// Returns currently displayed card
+	self.curCard = function() {return self.fc_cards[cur]};
+
+	// Switch to, and draw, the previous card
+	self.showPrevCard = function() {
+		cur = (cur + self.fc_cards.length - 1) % self.fc_cards.length;
+
+		if (self.usingCanvas)
+			self.draw();
+		else
+			load();
+
+		self.handleSwitch(self, fc.MOVEMENT.ENTER);
+	};
+
+	// Switch to, and draw, the next card
+	self.showNextCard = function() {
+		cur = (cur + 1) % self.fc_cards.length;
+
+		if (self.usingCanvas)
+			self.draw();
+		else
+			load();
+
+		self.handleSwitch(self, fc.MOVEMENT.ENTER);
+	};
 }
 
 // Push card to stack
@@ -473,16 +649,6 @@ fc.Stack.prototype.pop = function() {
 	return this.fc_cards.pop();
 }
 
-// Loads content-based flashcard into stack
-fc.Stack.prototype.load = function() {
-	with (this) {
-		front.removeChild(front.firstElementChild);
-		back.removeChild(back.firstElementChild);
-		front.appendChild(fc_cards[cur].sides[0]);
-		back.appendChild(fc_cards[cur].sides[1]);
-	}
-}
-
 // Resize flashcards while maintaining aspect ratio
 fc.Stack.prototype.resize = function() {
 	with (this) {
@@ -499,7 +665,7 @@ fc.Stack.prototype.resize = function() {
 
 		swipeDist = w * fc.SWIPE_DISTANCE;
 
-		if (scalingEnabled) {
+		if (enabled.scaling) {
 			front.width = back.width = w;
 			front.height = back.height = h;
 			draw();
@@ -507,80 +673,45 @@ fc.Stack.prototype.resize = function() {
 	}
 }
 
-// Calls onChange, onLeave, and onEnter
-fc.Stack.prototype.onChange = function(movement) {
-	if (movement === fc.MOVEMENT.LEAVE) {
-		if (this.functions.onChange)
-			this.functions.onChange(this);
-
-		if (this.functions.onLeave)
-			this.functions.onLeave(this);
-	}
-	else if (this.functions.onEnter) {
-		this.functions.onEnter(this);
-	}
-
-	this.fc_cards[this.cur].onChange(this, movement);
-}
-
-// Calls onFlip, onFlipUp, onFlipDown, onFlipRight, and onFlipLeft
-fc.Stack.prototype.onFlip = function(direction) {
-	if (this.functions.onFlip)
-		this.functions.onFlip(this);
+// Calls flip events based on direction
+fc.Stack.prototype.handleFlip = function(direction) {
+	if (this.events.onFlip)
+		this.events.onFlip(this);
 
 	if (this.isFaceUp) {
-		if (this.functions.onFlipUp) {
-			this.functions.onFlipUp(this);
+		if (this.events.onFlipUp) {
+			this.events.onFlipUp(this);
 		}
 	}
-	else if (this.functions.onFlipDown) {
-		this.functions.onFlipDown(this);
+	else if (this.events.onFlipDown) {
+		this.events.onFlipDown(this);
 	}
 
 	if (direction === fc.MOVEMENT.RIGHT) {
-		if (this.functions.onFlipRight)
-			this.functions.onFlipRight(this);
+		if (this.events.onFlipRight)
+			this.events.onFlipRight(this);
 	}
-	else if (this.functions.onFlipLeft) {
-			this.functions.onFlipLeft(this);
+	else if (this.events.onFlipLeft) {
+			this.events.onFlipLeft(this);
 	}
 
-	this.fc_cards[this.cur].onFlip(this, direction);
+	this.curCard().handleFlip(this, direction);
 }
 
-// Set height and width of canvas context
-fc.Stack.prototype.setContextSize = function(x, y) {
-	this.card.width = x;
-	this.card.height = y;
-}
+// Calls onSwitch, onLeave, and onEnter
+fc.Stack.prototype.handleSwitch = function(movement) {
+	if (movement === fc.MOVEMENT.LEAVE) {
+		if (this.events.onSwitch)
+			this.events.onSwitch(this);
 
-// Set height and width of canvas
-fc.Stack.prototype.setSize = function(x, y) {
-	this.card.style.width = x + 'px';
-	this.card.style.height = y + 'px';
-}
-
-// Switch to, and draw, the previous card
-fc.Stack.prototype.showPrevCard = function() {
-	with (this) {
-		cur = (cur + fc_cards.length - 1) % fc_cards.length;
-
-		if (usingCanvas) draw();
-		else             load();
-
-		this.onChange(this, fc.MOVEMENT.ENTER);
+		if (this.events.onLeave)
+			this.events.onLeave(this);
 	}
-}
-// Switch to, and draw, the next card
-fc.Stack.prototype.showNextCard = function() {
-	with (this) {
-		cur = (cur + 1) % fc_cards.length;
-
-		if (usingCanvas) draw();
-		else             load();
-
-		this.onChange(this, fc.MOVEMENT.ENTER);
+	else if (this.events.onEnter) {
+		this.events.onEnter(this);
 	}
+
+	this.curCard().handleSwitch(this, movement);
 }
 
 // Choose action based on direction
@@ -589,150 +720,17 @@ fc.Stack.prototype.moveCard = function(direction) {
 		case fc.MOVEMENT.LEFT:
 		case fc.MOVEMENT.RIGHT:
 			this.flipCard(direction);
-			if (this.fc_cards[this.cur].flip)
-				this.fc_cards[this.cur].flip(direction);
+			if (this.curCard().flip)
+				this.curCard().flip(direction);
 			break;
 		default:
 			if (this.fc_cards.length > 1) {
-				this.changeCard(direction);
+				this.switchCard(direction);
 			}
 	}
 }
 
 // Draw front and back of current card
 fc.Stack.prototype.draw = function() {
-	if (this.fc_cards.length) this.fc_cards[this.cur].draw(this.front, this.back);
-}
-
-// Resets touch variables
-fc.Stack.prototype.resetTouchEvent = function() {
-	fc.touchX = null;
-	fc.touchY = null;
-	fc.prevDir = null;
-	this.card.classList.remove('fc_tiltLeft');
-	this.card.classList.remove('fc_tiltRight');
-	this.outerHolder.classList.remove('fc_tiltUp');
-	this.outerHolder.classList.remove('fc_tiltDown');
-}
-
-// Sets touch/mousedown event variables
-fc.Stack.prototype.touchstart = function(e) {
-	fc.touchX = e.touches[0].pageX;
-	fc.touchY = e.touches[0].pageY;
-}
-
-// Moves card based on cursor/pointer movement
-fc.Stack.prototype.touchend = function(e) {
-	if (fc.touchX != null && fc.touchY != null) {
-		var endX = e.changedTouches[0].pageX;
-		var endY = e.changedTouches[0].pageY;
-
-		// If swipe length is long enough
-		if (Math.abs(endX - fc.touchX) > this.swipeDist || Math.abs(endY - fc.touchY) > this.swipeDist) {
-			e.preventDefault();
-			this.moveCard(fc.swipeDirection(fc.touchX, fc.touchY, endX, endY));
-		}
-	}
-
-	this.resetTouchEvent();
-}
-
-// Tilts card based on mouse/pointer movement
-fc.Stack.prototype.touchmove = function(e) {
-	if (fc.touchX != null && fc.touchY != null) {
-		var card = this.card;
-		var holder = this.outerHolder;
-		var curX = e.touches[0].pageX;
-		var curY = e.touches[0].pageY;
-		var dist = Math.max(Math.abs(curX - fc.touchX), Math.abs(curY - fc.touchY));
-
-		// If length of swipe is long enough
-		if (dist > this.swipeDist) {
-			e.preventDefault();
-			var swipeDir = fc.swipeDirection(fc.touchX, fc.touchY, curX, curY);
-
-			card.classList.add('fc_animateTilt');
-			holder.classList.add('fc_animateTilt');
-
-			// If direction of swipe has changed
-			if (fc.prevDir != swipeDir) {
-				fc.prevDir = swipeDir;
-
-				switch (swipeDir) {
-					case fc.MOVEMENT.LEFT:
-						card.classList.remove('fc_tiltRight');
-						holder.classList.remove('fc_tiltUp');
-						holder.classList.remove('fc_tiltDown');
-
-						card.classList.add('fc_tiltLeft');
-						break;
-					case fc.MOVEMENT.RIGHT:
-						card.classList.remove('fc_tiltLeft');
-						holder.classList.remove('fc_tiltUp');
-						holder.classList.remove('fc_tiltDown');
-
-						card.classList.add('fc_tiltRight');
-						break;
-					case fc.MOVEMENT.UP:
-						card.classList.remove('fc_tiltLeft');
-						card.classList.remove('fc_tiltRight');
-						holder.classList.remove('fc_tiltDown');
-
-						holder.classList.add('fc_tiltUp');
-						break
-					default:
-						card.classList.remove('fc_tiltLeft');
-						card.classList.remove('fc_tiltRight');
-						holder.classList.remove('fc_tiltUp');
-
-						holder.classList.add('fc_tiltDown');
-						break;
-				}
-			}
-		}
-		else if (fc.prevDir !== null) {
-			card.classList.remove('fc_tiltLeft');
-			card.classList.remove('fc_tiltRight');
-			holder.classList.remove('fc_tiltUp');
-			holder.classList.remove('fc_tiltDown');
-			fc.prevDir = null;
-		}
-	}
-}
-
-// Sets mousedown listener
-fc.Stack.prototype.dragListener = function() {
-	var thisStack = this;
-
-	// MouseDown
-	thisStack.card.addEventListener('mousedown', function(e) {
-		fc.touchedStack = thisStack;
-		e.touches = [{'pageX': e.clientX, 'pageY': e.clientY}];
-		fc.touchedStack.touchstart(e);
-	});
-}
-
-// Sets touchstart and touchend listeners
-fc.Stack.prototype.swipeListener = function() {
-	var thisStack = this;
-
-	// Touchstart
-	thisStack.card.addEventListener('touchstart', function(e) {
-		fc.touchedStack = thisStack;
-		thisStack.touchstart(e);
-		fc.touchedStack.touchstart(e);
-	});
-
-	// Touchend
-	thisStack.card.addEventListener('touchend', function(e) {
-		thisStack.touchend(e);
-	});
-}
-
-// Sets click listener
-fc.Stack.prototype.clickListener = function() {
-	var thisStack = this;
-	thisStack.card.addEventListener('click', function(e) {
-		thisStack.flipCard();
-	});
+	if (this.fc_cards.length) this.curCard().draw(this.front, this.back);
 }
