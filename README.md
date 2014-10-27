@@ -44,6 +44,6 @@ For more advanced features, look at the [FlashcardStacks Documentation](https://
 
 ## About
 
-I developed this webpage as part of the [NARS web application](https://github.com/JGitHubApp/narsapp), before the project was discontinued. It's purpose was to help the students of the National Academy of Railroad Science (NARS) memorize different railraod signals and their meanings.
+This library was originally a very simple webpage that was part of the [NARS web application](https://github.com/JGitHubApp/narsapp), before it was discontinued. The purpose of the webpage was to provide the students of the National Academy of Railroad Science (NARS) with electronic flashcards of different railraod signals and their meanings.
 
-This project's goal is to convert the webpage into a general-purpose flashcard library.
+This project's goal is to convert that webpage into a general-purpose flashcard library.
