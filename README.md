@@ -40,7 +40,7 @@ This is everything you need to create a stack of two flashcards that flips and s
   </body>
 ```
 
-For more advanced features, look at the [FlashcardStacks Documentation](wiki/Home)
+For more advanced features, look at the [FlashcardStacks Documentation](https://github.com/Ryan-Rutledge/FlashcardStacks/wiki)
 
 ## About
 
