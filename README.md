@@ -17,7 +17,7 @@ This is everything you need to create a stack of two flashcards that flips and s
 ```html
   <head>
     <link href="flashcardStacks.css" rel="stylesheet" type="text/css" />
-		<script src="flashcardStacks.js" type="text/javascript"></script>
+    <script src="flashcardStacks.js" type="text/javascript"></script>
   </head>
   <body onload='fc.init()'>
     <!-- Card One -->
