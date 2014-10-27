@@ -69,7 +69,7 @@ var fc = {
 
 	// Tilts card based on mouse/pointer movement
 	touchmove: function(e) {
-		if (fc.touchX != null && fc.touchY != null) {
+		if (!fc.isAnimating && fc.touchX != null && fc.touchY != null) {
 			var card = fc.touchedStack.card;
 			var holder = fc.touchedStack.outerHolder;
 			var curX = e.touches[0].pageX;
@@ -166,8 +166,8 @@ var fc = {
 		if (animationIsSupported) {
 			// Flip flashcard over
 			fc.Stack.prototype.flipCard = function(direction) {
-				if (!this.isAnimating) {
-					this.isAnimating = true;
+				if (!fc.isAnimating) {
+					fc.isAnimating = true;
 					var thisStack = this
 
 					thisStack.card.classList.remove('fc_animateTilt');
@@ -197,14 +197,14 @@ var fc = {
 						thisStack.card.classList.add('fc_flipLeft');
 						var t2 = setTimeout(function() {
 							thisStack.card.classList.remove('fc_flipLeft');
-							thisStack.isAnimating = false;
+							fc.isAnimating = false;
 						}, fc.FLIP_TIME);
 					}
 					else {
 						thisStack.card.classList.add('fc_flipRight');
 						var t2 = setTimeout(function() {
 							thisStack.card.classList.remove('fc_flipRight');
-							thisStack.isAnimating = false;
+							fc.isAnimating = false;
 						}, fc.FLIP_TIME);
 					}
 
@@ -214,8 +214,8 @@ var fc = {
 
 			// Switch to adjacent card
 			fc.Stack.prototype.switchCard = function(direction) {
-				if (!this.isAnimating) {
-					this.isAnimating = true;
+				if (!fc.isAnimating) {
+					fc.isAnimating = true;
 					var thisStack = this;
 
 					thisStack.card.classList.remove('fc_animateTilt');
@@ -233,7 +233,7 @@ var fc = {
 							}, fc.SWITCH_TIME/2);
 							var t2 = setTimeout(function() {
 								thisStack.outerHolder.classList.remove('fc_moveUp');
-								thisStack.isAnimating = false;
+								fc.isAnimating = false;
 							}, fc.SWITCH_TIME);
 
 							break;
@@ -246,7 +246,7 @@ var fc = {
 
 							var t2 = setTimeout(function() {
 								thisStack.outerHolder.classList.remove('fc_moveDown');
-								thisStack.isAnimating = false;
+								fc.isAnimating = false;
 							}, fc.SWITCH_TIME);
 							break;
 					}
