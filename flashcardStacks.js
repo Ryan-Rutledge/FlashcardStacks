@@ -16,12 +16,10 @@ var fc = {
 
 	// Return direction of cursor/touch movement
 	swipeDirection: function(startX, startY, endX, endY) {
-		if (Math.abs(startX - endX) > Math.abs(startY - endY)) {
+		if (Math.abs(startX - endX) > Math.abs(startY - endY))
 			return (startX > endX) ? fc.MOVEMENT.LEFT : fc.MOVEMENT.RIGHT;
-		}
-		else {
-			return (startY > endY) ? fc.MOVEMENT.UP: fc.MOVEMENT.DOWN;
-		}
+		else
+			return (startY > endY) ? fc.MOVEMENT.UP : fc.MOVEMENT.DOWN;
 	},
 
 	// Resize all stacks
@@ -88,33 +86,22 @@ var fc = {
 				if (fc.prevDir != swipeDir) {
 					fc.prevDir = swipeDir;
 
+					card.classList.remove('fc_tiltRight');
+					card.classList.remove('fc_tiltLeft');
+					holder.classList.remove('fc_tiltUp');
+					holder.classList.remove('fc_tiltDown');
+
 					switch (swipeDir) {
 						case fc.MOVEMENT.LEFT:
-							card.classList.remove('fc_tiltRight');
-							holder.classList.remove('fc_tiltUp');
-							holder.classList.remove('fc_tiltDown');
-
 							card.classList.add('fc_tiltLeft');
 							break;
 						case fc.MOVEMENT.RIGHT:
-							card.classList.remove('fc_tiltLeft');
-							holder.classList.remove('fc_tiltUp');
-							holder.classList.remove('fc_tiltDown');
-
 							card.classList.add('fc_tiltRight');
 							break;
 						case fc.MOVEMENT.UP:
-							card.classList.remove('fc_tiltLeft');
-							card.classList.remove('fc_tiltRight');
-							holder.classList.remove('fc_tiltDown');
-
 							holder.classList.add('fc_tiltUp');
 							break
 						default:
-							card.classList.remove('fc_tiltLeft');
-							card.classList.remove('fc_tiltRight');
-							holder.classList.remove('fc_tiltUp');
-
 							holder.classList.add('fc_tiltDown');
 							break;
 					}
@@ -147,15 +134,13 @@ var fc = {
 		fc.resetTouchEvent();
 
 		// Load parameter objects
-		for (var key in objectStacks) {
+		for (var key in objectStacks)
 			if (fc.stacks[key].usingCanvas)
 				for (var o in objectStacks[key])
 					fc.stacks[key].push(new fc.FlashCard(objectStacks[key][o]));
 			else 
 				for (var o in objectStacks[key])
 					fc.stacks[key].fc_cars[o].events = objectStacks[key][o];
-
-		}
 
 		// Get layout engine info
 		var LE = 'webkitTransform' in document.body.style ?  'webkit' :'MozTransform' in document.body.style ?  'Moz':'';
@@ -170,43 +155,31 @@ var fc = {
 					fc.isAnimating = true;
 					var thisStack = this
 
+					// Remove tilt classes
 					thisStack.card.classList.remove('fc_animateTilt');
 					thisStack.outerHolder.classList.remove('fc_animateTilt');
 
 					// Switch facedown and faceup css classes after animation finishes
-					if (this.isFaceUp) {
-						this.isFaceUp = false;
+					var faceArr = ['fc_faceup', 'fc_facedown'];
 
-						var t1 = setTimeout(function() {
-							thisStack.card.classList.add('fc_facedown');
-							thisStack.card.classList.remove('fc_faceup');
-						}, fc.FLIP_TIME);
+					if (this.isFaceUp) faceArr.reverse();
+					this.isFaceUp = !this.isFaceUp;
 
-					}
-					else {
-						this.isFaceUp = true;
-
-						var t1 = setTimeout(function() {
-							thisStack.card.classList.add('fc_faceup');
-							thisStack.card.classList.remove('fc_facedown');
-						}, fc.FLIP_TIME);
-					}
+					var t1 = setTimeout(function() {
+						thisStack.card.classList.add(faceArr[0]);
+						thisStack.card.classList.remove(faceArr[1]);
+					}, fc.FLIP_TIME);
 
 					// Add css flip animation classes, then remove them after animation finishes
-					if (direction == fc.MOVEMENT.LEFT) {
-						thisStack.card.classList.add('fc_flipLeft');
-						var t2 = setTimeout(function() {
-							thisStack.card.classList.remove('fc_flipLeft');
-							fc.isAnimating = false;
-						}, fc.FLIP_TIME);
-					}
-					else {
-						thisStack.card.classList.add('fc_flipRight');
-						var t2 = setTimeout(function() {
-							thisStack.card.classList.remove('fc_flipRight');
-							fc.isAnimating = false;
-						}, fc.FLIP_TIME);
-					}
+					var dirArr = ['fc_flipLeft', 'fc_flipRight'];
+
+					if (direction == fc.MOVEMENT.RIGHT) dirArr.reverse();
+					
+					thisStack.card.classList.add(dirArr[0]);
+					var t2 = setTimeout(function() {
+						thisStack.card.classList.remove(dirArr[0]);
+						fc.isAnimating = false;
+					}, fc.FLIP_TIME);
 
 					thisStack.handleFlip(direction);
 				}
