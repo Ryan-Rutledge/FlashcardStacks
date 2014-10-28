@@ -648,6 +648,8 @@ fc.Stack.prototype.resize = function() {
 
 // Calls flip events based on direction
 fc.Stack.prototype.handleFlip = function(direction) {
+	this.curCard().handleFlip(this, direction);
+
 	if (this.events.onFlip)
 		this.events.onFlip(this);
 
@@ -667,12 +669,12 @@ fc.Stack.prototype.handleFlip = function(direction) {
 	else if (this.events.onFlipLeft) {
 			this.events.onFlipLeft(this);
 	}
-
-	this.curCard().handleFlip(this, direction);
 }
 
 // Calls onSwitch, onLeave, and onEnter
 fc.Stack.prototype.handleSwitch = function(movement) {
+	this.curCard().handleSwitch(this, movement);
+
 	if (movement === fc.MOVEMENT.LEAVE) {
 		if (this.events.onSwitch)
 			this.events.onSwitch(this);
@@ -683,8 +685,6 @@ fc.Stack.prototype.handleSwitch = function(movement) {
 	else if (this.events.onEnter) {
 		this.events.onEnter(this);
 	}
-
-	this.curCard().handleSwitch(this, movement);
 }
 
 // Choose action based on direction
