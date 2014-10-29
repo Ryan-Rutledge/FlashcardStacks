@@ -534,7 +534,6 @@ fc.Stack = function(container) {
 	if (!self.usingCanvas) {
 		for (var i = elements.length-1; i > 0; i-=2) {
 			var front = container.firstElementChild;
-			console.log(front);
 			container.removeChild(front);
 
 			var back = container.firstElementChild;
