@@ -532,8 +532,9 @@ fc.Stack = function(container) {
 	self.aspectRatio = self.front.width / self.front.height;
 
 	if (!self.usingCanvas) {
-		for (var i = 0; i < elements.length; i+=2) {
+		for (var i = elements.length-1; i > 0; i-=2) {
 			var front = container.firstElementChild;
+			console.log(front);
 			container.removeChild(front);
 
 			var back = container.firstElementChild;
