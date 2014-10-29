@@ -534,8 +534,8 @@ fc.Stack = function(container) {
 	if (!self.usingCanvas) {
 		var i = elements.length - 1;
 		while (i > 0) {
-			var front = container.removeChild(elements[i--]);
 			var back = container.removeChild(elements[i--]);
+			var front = container.removeChild(elements[i--]);
 			
 			var flashcard = new fc.FlashCard(front, back)
 
