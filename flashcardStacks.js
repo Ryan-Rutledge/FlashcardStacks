@@ -395,7 +395,7 @@ fc.FlashCard.prototype.drawBack = function(ctx) {
 	this.events.drawBack(ctx);
 }
 
-// Called every time card is flipped
+// Handles card flip events
 fc.FlashCard.prototype.handleFlip = function(stack, direction) {
 	if (this.events.onFlip)
 		this.events.onFlip(stack);
@@ -418,7 +418,7 @@ fc.FlashCard.prototype.handleFlip = function(stack, direction) {
 	}
 }
 
-// Called every time card is switched
+// Handles card switch events
 fc.FlashCard.prototype.handleSwitch = function(stack, movement) {
 	if (movement === fc.MOVEMENT.LEAVE) {
 		if (this.events.onSwitch)
@@ -466,18 +466,6 @@ fc.Stack = function(container) {
 
 	self.enabled.scaling = container.getAttribute('fc-enableCanvasScale') === '';
 
-	// Assign stack event functions
-	self.events = {};
-	self.events.onSwitch = window[container.getAttribute('fc-onSwitch')];
-	self.events.onEnter = window[container.getAttribute('fc-onEnter')];
-	self.events.onLeave = window[container.getAttribute('fc-onLeave')];
-	self.events.onFlip = window[container.getAttribute('fc-onFlip')];
-	self.events.onFlipUp = window[container.getAttribute('fc-onFlipUp')];
-	self.events.onFlipDown = window[container.getAttribute('fc-onFlipDown')];
-	self.events.onFlipRight = window[container.getAttribute('fc-onFlipRight')];
-	self.events.onFlipLeft = window[container.getAttribute('fc-onFlipLeft')];
-
-
 	// Create card element
 	self.card = document.createElement('div');
 
@@ -509,7 +497,6 @@ fc.Stack = function(container) {
 		appendChild(self.front);
 		appendChild(self.back);
 	}
-
 
 	// Create inner element for translation animation
 	self.innerHolder = document.createElement('div');
@@ -638,44 +625,43 @@ fc.Stack.prototype.resize = function() {
 	}
 }
 
-// Calls flip events based on direction
+// Handles stack flip events
 fc.Stack.prototype.handleFlip = function(direction) {
 	this.curCard().handleFlip(this, direction);
 
-	if (this.events.onFlip)
-		this.events.onFlip(this);
+	if (window[this.container.getAttribute('fc-onFlip')])
+		window[this.container.getAttribute('fc-onFlip')](this);
 
 	if (this.isFaceUp) {
-		if (this.events.onFlipUp) {
-			this.events.onFlipUp(this);
-		}
+		if (window[this.container.getAttribute('fc-onFlipUp')])
+			window[this.container.getAttribute('fc-onFlipUp')](this);
 	}
-	else if (this.events.onFlipDown) {
-		this.events.onFlipDown(this);
+	else if (window[this.container.getAttribute('fc-onFlipDown')]) {
+		this.window[this.container.getAttribute('fc-onFlipDown')](this);
 	}
 
 	if (direction === fc.MOVEMENT.RIGHT) {
-		if (this.events.onFlipRight)
-			this.events.onFlipRight(this);
+		if (window[this.container.getAttribute('fc-onFlipRight')])
+			window[this.container.getAttribute('fc-onFlipRight')](this);
 	}
-	else if (this.events.onFlipLeft) {
-			this.events.onFlipLeft(this);
+	else if (window[this.container.getAttribute('fc-onFlipLeft')]) {
+			window[this.container.getAttribute('fc-onFlipLeft')](this);
 	}
 }
 
-// Calls onSwitch, onLeave, and onEnter
+// Handles stack switch events
 fc.Stack.prototype.handleSwitch = function(movement) {
 	this.curCard().handleSwitch(this, movement);
 
 	if (movement === fc.MOVEMENT.LEAVE) {
-		if (this.events.onSwitch)
-			this.events.onSwitch(this);
+		if (window[this.container.getAttribute('fc-onSwitch')])
+			window[this.container.getAttribute('fc-onSwitch')](this);
 
-		if (this.events.onLeave)
-			this.events.onLeave(this);
+		if (window[this.container.getAttribute('fc-onLeave')])
+			window[this.container.getAttribute('fc-onLeave')](this)
 	}
-	else if (this.events.onEnter) {
-		this.events.onEnter(this);
+	else if (window[this.container.getAttribute('fc-onEnter')]) {
+		window[this.container.getAttribute('fc-onEnter')](this);
 	}
 }
 
