@@ -3,7 +3,7 @@
  ******************************/
 var fc = {
 	FLIP_TIME: 400, // Length of card flip animation 
-	SWITCH_TIME: 500, // Duration of card switching animation
+	SWITCH_TIME: 500, // Duration of card switch animation
 	SWIPE_DISTANCE: 0.15, // Percentage of flashcard width required to flip a card
 	MOVEMENT: {LEFT: 0, UP: 1, RIGHT: 2, DOWN: 3, ENTER: 4, LEAVE: 5}, // Direction enum
 
@@ -560,9 +560,11 @@ fc.Stack.prototype.push = function(flashcard) {
 
 // Pop card from stack
 fc.Stack.prototype.pop = function() {
-	if (this.fc_cards.length <= 1) {
+	if (this.fc_cards.length <= 1)
 		this.outerHolder.style.display = 'none';
-	}
+	else if (this.cur === this.fc_cards.length - 1)
+		this.showPrevCard();
+
 	return this.fc_cards.pop();
 }
 
