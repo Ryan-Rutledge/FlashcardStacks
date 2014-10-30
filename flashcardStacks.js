@@ -36,13 +36,13 @@ var fc = {
 
 	// Moves card based on cursor/pointer movement
 	touchend: function(e) {
-		if (fc.touchX != null && fc.touchY != null) {
+		if (fc.touchedStack) {
 			var endX = e.changedTouches[0].pageX;
 			var endY = e.changedTouches[0].pageY;
+			e.preventDefault();
 
 			// If swipe length is long enough
 			if (Math.abs(endX - fc.touchX) > fc.touchedStack.swipeDist || Math.abs(endY - fc.touchY) > fc.touchedStack.swipeDist) {
-				e.preventDefault();
 				fc.touchedStack.moveCard(fc.swipeDirection(fc.touchX, fc.touchY, endX, endY));
 			}
 		}
@@ -67,7 +67,8 @@ var fc = {
 
 	// Tilts card based on mouse/pointer movement
 	touchmove: function(e) {
-		if (!fc.isAnimating && fc.touchX != null && fc.touchY != null) {
+		if (!fc.isAnimating && fc.touchedStack) {
+			e.preventDefault();
 			var card = fc.touchedStack.card;
 			var holder = fc.touchedStack.outerHolder;
 			var curX = e.touches[0].pageX;
@@ -76,7 +77,6 @@ var fc = {
 
 			// If length of swipe is long enough
 			if (dist > fc.touchedStack.swipeDist) {
-				e.preventDefault();
 				var swipeDir = fc.swipeDirection(fc.touchX, fc.touchY, curX, curY);
 
 				card.classList.add('fc_animateTilt');
