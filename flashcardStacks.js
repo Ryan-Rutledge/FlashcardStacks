@@ -443,7 +443,7 @@ fc.Stack = function(container) {
 	self.fc_cards = []; // Empty stack of cards
 	self.swipeDist = 1;
 	self.isFaceUp = true;
-	cur = 0; // Index of current card
+	this.cur = 0; // Index of current card
 
 	// Check which listeners are enabled
 	self.enabled = {};
@@ -552,46 +552,6 @@ fc.Stack = function(container) {
 		}
 	}
 
-
-	// Private functions
-
-	// Loads content-based flashcard into stack
-	function load() {
-		self.front.removeChild(self.front.firstElementChild);
-		self.back.removeChild(self.back.firstElementChild);
-		self.front.appendChild(self.curCard().sides[0]);
-		self.back.appendChild(self.curCard().sides[1]);
-	};
-
-
-	// Privileged functions
-
-	// Returns currently displayed card
-	self.curCard = function() {return self.fc_cards[cur]};
-
-	// Switch to, and draw, the previous card
-	self.showPrevCard = function() {
-		cur = (cur + self.fc_cards.length - 1) % self.fc_cards.length;
-
-		if (self.usingCanvas)
-			self.draw();
-		else
-			load();
-
-		self.handleSwitch(self, fc.MOVEMENT.ENTER);
-	};
-
-	// Switch to, and draw, the next card
-	self.showNextCard = function() {
-		cur = (cur + 1) % self.fc_cards.length;
-
-		if (self.usingCanvas)
-			self.draw();
-		else
-			load();
-
-		self.handleSwitch(self, fc.MOVEMENT.ENTER);
-	};
 }
 
 // Push card to stack
@@ -619,6 +579,41 @@ fc.Stack.prototype.pop = function() {
 	}
 	return this.fc_cards.pop();
 }
+
+// Loads content-based flashcard into stack
+fc.Stack.prototype.load = function() {
+	this.front.removeChild(this.front.firstElementChild);
+	this.back.removeChild(this.back.firstElementChild);
+	this.front.appendChild(this.curCard().sides[0]);
+	this.back.appendChild(this.curCard().sides[1]);
+};
+
+// Returns currently displayed card
+fc.Stack.prototype.curCard = function() {return this.fc_cards[this.cur]};
+
+// Switch to, and draw, the previous card
+fc.Stack.prototype.showPrevCard = function() {
+	this.cur = (this.cur + this.fc_cards.length - 1) % this.fc_cards.length;
+
+	if (this.usingCanvas)
+		this.draw();
+	else
+		load();
+
+	this.handleSwitch(this, fc.MOVEMENT.ENTER);
+};
+
+// Switch to, and draw, the next card
+fc.Stack.prototype.showNextCard = function() {
+	this.cur = (this.cur + 1) % this.fc_cards.length;
+
+	if (this.usingCanvas)
+		this.draw();
+	else
+		load();
+
+	this.handleSwitch(this, fc.MOVEMENT.ENTER);
+};
 
 // Resize flashcards while maintaining aspect ratio
 fc.Stack.prototype.resize = function() {
