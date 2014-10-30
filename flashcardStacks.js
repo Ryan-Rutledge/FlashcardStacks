@@ -532,10 +532,9 @@ fc.Stack = function(container) {
 	self.aspectRatio = self.front.width / self.front.height;
 
 	if (!self.usingCanvas) {
-		var i = elements.length - 1;
-		while (i > 0) {
-			var back = container.removeChild(elements[i--]);
-			var front = container.removeChild(elements[i--]);
+		for (var count = Math.floor(elements.length / 2); count > 0; count--) {
+			var front = container.removeChild(elements[0]);
+			var back = container.removeChild(elements[0]);
 			
 			var flashcard = new fc.FlashCard(front, back)
 
