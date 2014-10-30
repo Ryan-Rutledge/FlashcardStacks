@@ -598,7 +598,7 @@ fc.Stack.prototype.showPrevCard = function() {
 	if (this.usingCanvas)
 		this.draw();
 	else
-		load();
+		this.load();
 
 	this.handleSwitch(this, fc.MOVEMENT.ENTER);
 };
@@ -610,7 +610,7 @@ fc.Stack.prototype.showNextCard = function() {
 	if (this.usingCanvas)
 		this.draw();
 	else
-		load();
+		this.load();
 
 	this.handleSwitch(this, fc.MOVEMENT.ENTER);
 };
