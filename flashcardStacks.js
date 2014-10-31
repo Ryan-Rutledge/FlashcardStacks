@@ -104,7 +104,6 @@ var fc = {
 							break
 						default:
 							holder.classList.add('fc_tiltDown');
-							break;
 					}
 				}
 			}
@@ -141,7 +140,8 @@ var fc = {
 					fc.stacks[key].push(new fc.FlashCard(objectStacks[key][o]));
 			else 
 				for (var o in objectStacks[key])
-					fc.stacks[key].fc_cards[o].events = objectStacks[key][o];
+					if (objectStacks[key][o])
+						fc.stacks[key].fc_cards[o].events = objectStacks[key][o];
 
 		// Get layout engine info
 		var LE = 'webkitTransform' in document.body.style ?  'webkit' :'MozTransform' in document.body.style ?  'Moz':'';
@@ -222,7 +222,6 @@ var fc = {
 								thisStack.outerHolder.classList.remove('fc_moveDown');
 								fc.isAnimating = false;
 							}, fc.SWITCH_TIME);
-							break;
 					}
 				}
 			}
