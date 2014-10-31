@@ -1,6 +1,7 @@
 /******************************
  * fc class                   *
  ******************************/
+
 var fc = {
 	FLIP_TIME: 400, // Length of card flip animation 
 	SWITCH_TIME: 500, // Duration of card switch animation
@@ -140,7 +141,7 @@ var fc = {
 					fc.stacks[key].push(new fc.FlashCard(objectStacks[key][o]));
 			else 
 				for (var o in objectStacks[key])
-					fc.stacks[key].fc_cars[o].events = objectStacks[key][o];
+					fc.stacks[key].fc_cards[o].events = objectStacks[key][o];
 
 		// Get layout engine info
 		var LE = 'webkitTransform' in document.body.style ?  'webkit' :'MozTransform' in document.body.style ?  'Moz':'';
@@ -432,6 +433,7 @@ fc.FlashCard.prototype.handleSwitch = function(stack, movement) {
 		this.events.onEnter(stack);
 	}
 }
+
 /******************************
  * Stack class methods        *
  ******************************/
@@ -537,7 +539,6 @@ fc.Stack = function(container) {
 			self.push(flashcard);
 		}
 	}
-
 }
 
 // Push card to stack
@@ -677,9 +678,8 @@ fc.Stack.prototype.moveCard = function(direction) {
 				this.curCard().flip(direction);
 			break;
 		default:
-			if (this.fc_cards.length > 1) {
+			if (this.fc_cards.length > 1)
 				this.switchCard(direction);
-			}
 	}
 }
 
