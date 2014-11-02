@@ -328,11 +328,6 @@ var fc = {
 					fc.touchedStack = stack;
 					fc.touchstart(e);
 				});
-
-				// Touchend
-				stack.card.addEventListener('touchend', function(e) {
-					fc.touchend(e);
-				});
 			},
 
 			// Set keydown listener for stacks
