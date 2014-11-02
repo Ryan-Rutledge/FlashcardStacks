@@ -68,7 +68,7 @@ var fc = {
 
 	// Tilts card based on mouse/pointer movement
 	touchmove: function(e) {
-		if (!fc.isAnimating && fc.touchedStack) {
+		if (!this.isAnimating && fc.touchedStack) {
 			e.preventDefault();
 			var card = fc.touchedStack.card;
 			var holder = fc.touchedStack.outerHolder;
@@ -152,8 +152,8 @@ var fc = {
 		if (animationIsSupported) {
 			// Flip flashcard over
 			fc.Stack.prototype.flipCard = function(direction) {
-				if (!fc.isAnimating) {
-					fc.isAnimating = true;
+				if (!this.isAnimating) {
+					this.isAnimating = true;
 					var thisStack = this
 
 					// Remove tilt classes
@@ -179,7 +179,7 @@ var fc = {
 					thisStack.card.classList.add(dirArr[0]);
 					var t2 = setTimeout(function() {
 						thisStack.card.classList.remove(dirArr[0]);
-						fc.isAnimating = false;
+						thisStack.isAnimating = false;
 					}, fc.FLIP_TIME);
 
 					thisStack.handleFlip(direction);
@@ -188,8 +188,8 @@ var fc = {
 
 			// Switch to adjacent card
 			fc.Stack.prototype.switchCard = function(direction) {
-				if (!fc.isAnimating) {
-					fc.isAnimating = true;
+				if (!this.isAnimating) {
+					this.isAnimating = true;
 					var thisStack = this;
 
 					thisStack.card.classList.remove('fc_animateTilt');
@@ -207,7 +207,7 @@ var fc = {
 							}, fc.SWITCH_TIME/2);
 							var t2 = setTimeout(function() {
 								thisStack.outerHolder.classList.remove('fc_moveUp');
-								fc.isAnimating = false;
+								thisStack.isAnimating = false;
 							}, fc.SWITCH_TIME);
 
 							break;
@@ -220,7 +220,7 @@ var fc = {
 
 							var t2 = setTimeout(function() {
 								thisStack.outerHolder.classList.remove('fc_moveDown');
-								fc.isAnimating = false;
+								thisStack.isAnimating = false;
 							}, fc.SWITCH_TIME);
 					}
 				}
@@ -456,6 +456,7 @@ fc.Stack = function(container) {
 	self.swipeDist = 1;
 	self.isFaceUp = true;
 	this.cur = 0; // Index of current card
+	this.isAnimating = false;
 
 	// Check which listeners are enabled
 	self.enabled = {};
