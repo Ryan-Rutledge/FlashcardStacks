@@ -68,7 +68,7 @@ var fc = {
 
 	// Tilts card based on mouse/pointer movement
 	touchmove: function(e) {
-		if (!this.isAnimating && fc.touchedStack) {
+		if (!fc.isAnimating && fc.touchedStack) {
 			e.preventDefault();
 			var card = fc.touchedStack.card;
 			var holder = fc.touchedStack.outerHolder;
@@ -119,6 +119,11 @@ var fc = {
 
 	// Create flashcard stacks
 	init: function(objectStacks) {
+		// Add CSS to head
+		style = document.createElement('style');
+		style.innerHTML = ".fc_container,.fc_outerHolder .fc_innerHolder,.fc_card,.fc_side,.fc_content{margin:0}.fc_outerHolder,.fc_innerHolder,.fc_side,.fc_content{width:100%;height:100%}.fc_container,.fc_content{overflow:hidden}.fc_outerHolder{padding:1%}.fc_outerHolder,.fc_innerHolder{position:relative}.fc_outerHolder,.fc_content{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}.fc_innerHolder{-webkit-perspective:1000px;-moz-perspective:1000px;-o-perspective:1000px;perspective:1000px}.fc_card{position:absolute;top:0;right:0;bottom:0;left:0;margin:auto;-webkit-transform-style:preserve-3d;-moz-transform-style:preserve-3d;-ms-transform-style:preserve-3d;transform-style:preserve-3d}.fc_side{display:block;position:absolute;-webkit-backface-visibility:hidden;-moz-backface-visibility:hidden;-ms-backface-visibility:hidden;backface-visibility:hidden}canvas.fc_side{background-color:#fff;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.fc_side,.fc_content{-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px}.fc_content{background-color:#fff}.fc_flipLeft,.fc_flipRight,.fc_animateTilt{-webkit-transition:-webkit-transform .4s ease-out;transition:transform .5s ease-out}.fc_back,.fc_facedown,.fc_faceup.fc_flipLeft{-webkit-transform:rotateY(180deg);-ms-transform:rotateY(180deg);transform:rotateY(180deg)}.fc_faceup,.fc_facedown.fc_flipRight{-webkit-transform:rotateY(360deg);-ms-transform:rotateY(360deg);transform:rotateY(360deg)}.fc_faceup.fc_flipRight{-webkit-transform:rotateY(540deg);-ms-transform:rotateY(540deg);transform:rotateY(540deg)}.fc_faceup.fc_tiltRight{-webkit-transform:rotateY(380deg);-ms-transform:rotateY(380deg);transform:rotateY(380deg)}.fc_faceup.fc_tiltLeft{-webkit-transform:rotateY(340deg);-ms-transform:rotateY(340deg);transform:rotateY(340deg)}.fc_facedown.fc_flipLeft{-webkit-transform:rotateY(0);-ms-transform:rotateY(0);transform:rotateY(0)}.fc_facedown.fc_tiltRight{-webkit-transform:rotateY(200deg);-ms-transform:rotateY(200deg);transform:rotateY(200deg)}.fc_facedown.fc_tiltLeft{-webkit-transform:rotateY(160deg);-ms-transform:rotateY(160deg);transform:rotateY(160deg)}.fc_tiltUp{transform:translate(0,-1%);transform:translate(0,-1%)}.fc_tiltDown{transform:translate(0,1%);transform:translate(0,1%)}.fc_back,.fc_facedown,.fc_faceup.fc_flipLeft{-webkit-transform:rotateY(180deg);-ms-transform:rotateY(180deg);transform:rotateY(180deg)}.fc_noAnimation,.fc_noAnimation > .fc_back{-webkit-transform:none;-moz-transform:none;-ms-transform:none;transform:none}.fc_noAnimation > .fc_side{-webkit-backface-visibility:visible;-ms-backface-visibility:visible;backface-visibility:visible}.fc_noAnimation > .fc_back{display:none}.fc_noAnimation.fc_facedown > .fc_back{display:block}.fc_noAnimation.fc_facedown > .fc_front{display:none}.fc_moveUp{-webkit-animation:fc_gotoPrevCard .5s;animation:fc_gotoPrevCard .5s}.fc_moveDown{-webkit-animation:fc_gotoNextCard .5s;animation:fc_gotoNextCard .5s}@-webkit-keyframes fc_gotoPrevCard{50%{-webkit-transform:translate(0,-100%)}50.001%{-webkit-transform:translate(0,100%)}}@keyframes fc_gotoPrevCard{50%{transform:translate(0,-100%)}50.001%{transform:translate(0,100%)}}@-webkit-keyframes fc_gotoNextCard{50%{-webkit-transform:translate(0,100%)}50.001%{-webkit-transform:translate(0,-100%)}}@keyframes fc_gotoNextCard{50%{transform:translate(0,100%)}50.001%{transform:translate(0,-100%)}}"
+		document.head.insertBefore(style, document.head.firstChild);
+
 		// Setup Flashcard elements
 		var stackContainers = document.getElementsByClassName('fc_container');
 		for (var i = 0; i < stackContainers.length; i++) {
@@ -152,8 +157,8 @@ var fc = {
 		if (animationIsSupported) {
 			// Flip flashcard over
 			fc.Stack.prototype.flipCard = function(direction) {
-				if (!this.isAnimating) {
-					this.isAnimating = true;
+				if (!fc.isAnimating) {
+					fc.isAnimating = true;
 					var thisStack = this
 
 					// Remove tilt classes
@@ -179,7 +184,7 @@ var fc = {
 					thisStack.card.classList.add(dirArr[0]);
 					var t2 = setTimeout(function() {
 						thisStack.card.classList.remove(dirArr[0]);
-						thisStack.isAnimating = false;
+						fc.isAnimating = false;
 					}, fc.FLIP_TIME);
 
 					thisStack.handleFlip(direction);
@@ -188,8 +193,8 @@ var fc = {
 
 			// Switch to adjacent card
 			fc.Stack.prototype.switchCard = function(direction) {
-				if (!this.isAnimating) {
-					this.isAnimating = true;
+				if (!fc.isAnimating) {
+					fc.isAnimating = true;
 					var thisStack = this;
 
 					thisStack.card.classList.remove('fc_animateTilt');
@@ -207,7 +212,7 @@ var fc = {
 							}, fc.SWITCH_TIME/2);
 							var t2 = setTimeout(function() {
 								thisStack.outerHolder.classList.remove('fc_moveUp');
-								thisStack.isAnimating = false;
+								fc.isAnimating = false;
 							}, fc.SWITCH_TIME);
 
 							break;
@@ -220,7 +225,7 @@ var fc = {
 
 							var t2 = setTimeout(function() {
 								thisStack.outerHolder.classList.remove('fc_moveDown');
-								thisStack.isAnimating = false;
+								fc.isAnimating = false;
 							}, fc.SWITCH_TIME);
 					}
 				}
@@ -328,6 +333,11 @@ var fc = {
 					fc.touchedStack = stack;
 					fc.touchstart(e);
 				});
+
+				// Touchend
+				stack.card.addEventListener('touchend', function(e) {
+					fc.touchend(e);
+				});
 			},
 
 			// Set keydown listener for stacks
@@ -392,35 +402,24 @@ fc.FlashCard.prototype.drawBack = function(ctx) {
 
 // Handles card flip events
 fc.FlashCard.prototype.handleFlip = function(stack, direction) {
-	self = this;
-
-	if (self.events.onFlip)
-		self.events.onFlip(stack);
+	if (this.events.onFlip)
+		this.events.onFlip(stack);
 
 	if (stack.isFaceUp) {
-		if (self.events.onFlipUp) {
-			self.events.onFlipUp(stack);
+		if (this.events.onFlipUp) {
+			this.events.onFlipUp(stack);
 		}
 	}
-	else if (self.events.onFlipDown) {
-		self.events.onFlipDown(stack);
+	else if (this.events.onFlipDown) {
+		this.events.onFlipDown(stack);
 	}
 
 	if (direction === fc.MOVEMENT.RIGHT) {
-		if (self.events.onFlipRight)
-			self.events.onFlipRight(stack);
+		if (this.events.onFlipRight)
+			this.events.onFlipRight(stack);
 	}
-	else if (self.events.onFlipLeft) {
-			self.events.onFlipLeft(stack);
-	}
-
-	if (self.events.onFlipFinish) {
-		t = setTimeout(
-			function() {
-				if (self.events.onFlipFinish)
-					self.events.onFlipFinish(stack);
-			}, fc.FLIP_TIME + 1
-		);
+	else if (this.events.onFlipLeft) {
+			this.events.onFlipLeft(stack);
 	}
 }
 
@@ -451,7 +450,6 @@ fc.Stack = function(container) {
 	self.swipeDist = 1;
 	self.isFaceUp = true;
 	this.cur = 0; // Index of current card
-	this.isAnimating = false;
 
 	// Check which listeners are enabled
 	self.enabled = {};
@@ -541,7 +539,6 @@ fc.Stack = function(container) {
 			flashcard.events.onFlipDown = window[front.getAttribute('fc-onFlipDown')];
 			flashcard.events.onFlipRight = window[front.getAttribute('fc-onFlipRight')];
 			flashcard.events.onFlipLeft = window[front.getAttribute('fc-onFlipLeft')];
-			flashcard.events.onFlipFinish = window[front.getAttribute('fc-onFlipFinish')];
 
 			self.push(flashcard);
 		}
@@ -656,15 +653,6 @@ fc.Stack.prototype.handleFlip = function(direction) {
 	}
 	else if (window[this.container.getAttribute('fc-onFlipLeft')]) {
 			window[this.container.getAttribute('fc-onFlipLeft')](this);
-	}
-
-	if (window[this.container.getAttribute('fc-onFlipFinish')]) {
-		t = setTimeout(
-			function() {
-				if (window[this.container.getAttribute('fc-onFlipFinish')])
-					window[this.container.getAttribute('fc-onFlipFinish')](self);
-			}, fc.FLIP_TIME + 1
-		);
 	}
 }
 
