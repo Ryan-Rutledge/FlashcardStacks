@@ -6,7 +6,7 @@ Virtual flashcard JavaScript library
 
 ##Synopsis
 
-FlashcardStacks is a JavaScript/CSS3 library that makes it easy to add 3D-animated virtual flashcards to a webpage.
+FlashcardStacks is a JavaScript library that makes it easy to add 3D-animated virtual flashcards to a webpage.
 
 ## Code Example
 
@@ -16,7 +16,6 @@ This is everything you need to create a stack of two flashcards that flips and s
 
 ```html
   <head>
-    <link href="flashcardStacks.css" rel="stylesheet" type="text/css" />
     <script src="flashcardStacks.js" type="text/javascript"></script>
   </head>
   <body onload='fc.init()'>
