@@ -151,10 +151,10 @@ var fc = {
 		// Get layout engine info
 		var LE = 'webkitTransform' in document.body.style ?  'webkit' :'MozTransform' in document.body.style ?  'Moz':'';
 		// Check for flip effect support
-		var animationIsSupported = ((LE === '' ? 'b':LE + 'B') + 'ackfaceVisibility') in document.body.style;
+		fc.animationIsSupported = ((LE === '' ? 'b':LE + 'B') + 'ackfaceVisibility') in document.body.style;
 
 		// If 3d animations are supported
-		if (animationIsSupported) {
+		if (fc.animationIsSupported) {
 			// Flip flashcard over
 			fc.Stack.prototype.flipCard = function(direction) {
 				if (!this.isAnimating) {
@@ -346,7 +346,7 @@ var fc = {
 		};
 
 		// Add listeners
-		if (animationIsSupported && fc.tiltStacks.length) setListener.tilt();
+		if (fc.animationIsSupported && fc.tiltStacks.length) setListener.tilt();
 		if (fc.dragStacks.length) setListener.drag(fc.dragStacks);
 		if (fc.clickStacks.length) setListener.click(fc.clickStacks);
 		if (fc.swipeStacks.length) setListener.swipe(fc.swipeStacks);
@@ -403,9 +403,8 @@ fc.FlashCard.prototype.handleFlip = function(stack, direction) {
 		self.events.onFlip(stack);
 
 	if (stack.isFaceUp) {
-		if (self.events.onFlipUp) {
+		if (self.events.onFlipUp)
 			self.events.onFlipUp(stack);
-		}
 	}
 	else if (self.events.onFlipDown) {
 		self.events.onFlipDown(stack);
@@ -416,31 +415,43 @@ fc.FlashCard.prototype.handleFlip = function(stack, direction) {
 			self.events.onFlipRight(stack);
 	}
 	else if (self.events.onFlipLeft) {
-			self.events.onFlipLeft(stack);
+		self.events.onFlipLeft(stack);
 	}
 
 	if (self.events.onFlipFinish) {
-		t = setTimeout(
-			function() {
-				if (self.events.onFlipFinish)
-					self.events.onFlipFinish(stack);
-			}, fc.FLIP_TIME + 1
-		);
+		t = setTimeout(function() {
+			if (self.events.onFlipFinish)
+				self.events.onFlipFinish(stack);
+		}, fc.FLIP_TIME);
 	}
 }
 
 // Handles card switch events
 fc.FlashCard.prototype.handleSwitch = function(stack, movement) {
+	var self = this;
+
 	if (movement === fc.MOVEMENT.LEAVE) {
-		if (this.events.onSwitch)
-			this.events.onSwitch(stack);
+		if (self.events.onSwitch)
+			self.events.onSwitch(stack);
 
-		if (this.events.onLeave)
-			this.events.onLeave(stack);
-
+		if (self.events.onLeave)
+			self.events.onLeave(stack);
 	}
-	else if (this.events.onEnter) {
-		this.events.onEnter(stack);
+	else {
+		if (self.events.onEnter)
+			self.events.onEnter(stack);
+			
+		if (self.events.onSwitchFinish) {
+			if (fc.animationIsSupported) {
+				t = setTimeout(function() {
+					if (self.events.onSwitchFinish)
+						self.events.onSwitchFinish(stack);
+				}, fc.SWITCH_TIME / 2);
+			}
+			else {
+				self.events.onSwitchFinish(stack);
+			}
+		}
 	}
 }
 
@@ -541,6 +552,7 @@ fc.Stack = function(container) {
 			flashcard.events.onSwitch = window[front.getAttribute('fc-onSwitch')];
 			flashcard.events.onEnter = window[front.getAttribute('fc-onEnter')];
 			flashcard.events.onLeave = window[front.getAttribute('fc-onLeave')];
+			flashcard.events.onSwitchFinish = window[front.getAttribute('fc-onSwitchFinish')];
 			flashcard.events.onFlip = window[front.getAttribute('fc-onFlip')];
 			flashcard.events.onFlipUp = window[front.getAttribute('fc-onFlipUp')];
 			flashcard.events.onFlipDown = window[front.getAttribute('fc-onFlipDown')];
@@ -660,32 +672,49 @@ fc.Stack.prototype.handleFlip = function(direction) {
 			window[this.container.getAttribute('fc-onFlipRight')](this);
 	}
 	else if (window[this.container.getAttribute('fc-onFlipLeft')]) {
-			window[this.container.getAttribute('fc-onFlipLeft')](this);
+		window[this.container.getAttribute('fc-onFlipLeft')](this);
 	}
 
 	if (window[this.container.getAttribute('fc-onFlipFinish')]) {
-		t = setTimeout(
-			function() {
+		if (fc.animationIsSupported) {
+			t = setTimeout(function() {
 				if (window[this.container.getAttribute('fc-onFlipFinish')])
 					window[this.container.getAttribute('fc-onFlipFinish')](self);
-			}, fc.FLIP_TIME + 1
-		);
+			}, fc.FLIP_TIME);
+		}
+		else {
+			window[this.container.getAttribute('fc-onFlipFinish')](self);
+		}
 	}
 }
 
 // Handles stack switch events
 fc.Stack.prototype.handleSwitch = function(movement) {
-	this.curCard().handleSwitch(this, movement);
+	var self = this;
+	self.curCard().handleSwitch(self, movement);
 
 	if (movement === fc.MOVEMENT.LEAVE) {
-		if (window[this.container.getAttribute('fc-onSwitch')])
-			window[this.container.getAttribute('fc-onSwitch')](this);
+		if (window[self.container.getAttribute('fc-onSwitch')])
+			window[self.container.getAttribute('fc-onSwitch')](self);
 
-		if (window[this.container.getAttribute('fc-onLeave')])
-			window[this.container.getAttribute('fc-onLeave')](this)
+		if (window[self.container.getAttribute('fc-onLeave')])
+			window[self.container.getAttribute('fc-onLeave')](self)
 	}
-	else if (window[this.container.getAttribute('fc-onEnter')]) {
-		window[this.container.getAttribute('fc-onEnter')](this);
+	else {
+		if (window[self.container.getAttribute('fc-onEnter')])
+			window[self.container.getAttribute('fc-onEnter')](self);
+		
+		if (window[self.container.getAttribute('fc-onSwitchFinish')]) {
+			if (fc.animationIsSupported) {
+				t = setTimeout(function() {
+					if (window[self.container.getAttribute('fc-onSwitchFinish')])
+						window[self.container.getAttribute('fc-onSwitchFinish')](self);
+				}, fc.SWITCH_TIME / 2);
+			}
+			else {
+				window[self.container.getAttribute('fc-onSwitchFinish')](self);
+			}
+		}
 	}
 }
 
