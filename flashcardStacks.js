@@ -68,7 +68,7 @@ var fc = {
 
 	// Tilts card based on mouse/pointer movement
 	touchmove: function(e) {
-		if (!fc.isAnimating && fc.touchedStack) {
+		if (!this.isAnimating && fc.touchedStack) {
 			e.preventDefault();
 			var card = fc.touchedStack.card;
 			var holder = fc.touchedStack.outerHolder;
@@ -157,8 +157,8 @@ var fc = {
 		if (animationIsSupported) {
 			// Flip flashcard over
 			fc.Stack.prototype.flipCard = function(direction) {
-				if (!fc.isAnimating) {
-					fc.isAnimating = true;
+				if (!this.isAnimating) {
+					this.isAnimating = true;
 					var thisStack = this
 
 					// Remove tilt classes
@@ -184,7 +184,7 @@ var fc = {
 					thisStack.card.classList.add(dirArr[0]);
 					var t2 = setTimeout(function() {
 						thisStack.card.classList.remove(dirArr[0]);
-						fc.isAnimating = false;
+						thisStack.isAnimating = false;
 					}, fc.FLIP_TIME);
 
 					thisStack.handleFlip(direction);
@@ -193,8 +193,8 @@ var fc = {
 
 			// Switch to adjacent card
 			fc.Stack.prototype.switchCard = function(direction) {
-				if (!fc.isAnimating) {
-					fc.isAnimating = true;
+				if (!this.isAnimating) {
+					this.isAnimating = true;
 					var thisStack = this;
 
 					thisStack.card.classList.remove('fc_animateTilt');
@@ -212,7 +212,7 @@ var fc = {
 							}, fc.SWITCH_TIME/2);
 							var t2 = setTimeout(function() {
 								thisStack.outerHolder.classList.remove('fc_moveUp');
-								fc.isAnimating = false;
+								thisStack.isAnimating = false;
 							}, fc.SWITCH_TIME);
 
 							break;
@@ -225,7 +225,7 @@ var fc = {
 
 							var t2 = setTimeout(function() {
 								thisStack.outerHolder.classList.remove('fc_moveDown');
-								fc.isAnimating = false;
+								thisStack.isAnimating = false;
 							}, fc.SWITCH_TIME);
 					}
 				}
@@ -397,24 +397,35 @@ fc.FlashCard.prototype.drawBack = function(ctx) {
 
 // Handles card flip events
 fc.FlashCard.prototype.handleFlip = function(stack, direction) {
-	if (this.events.onFlip)
-		this.events.onFlip(stack);
+	self = this;
+
+	if (self.events.onFlip)
+		self.events.onFlip(stack);
 
 	if (stack.isFaceUp) {
-		if (this.events.onFlipUp) {
-			this.events.onFlipUp(stack);
+		if (self.events.onFlipUp) {
+			self.events.onFlipUp(stack);
 		}
 	}
-	else if (this.events.onFlipDown) {
-		this.events.onFlipDown(stack);
+	else if (self.events.onFlipDown) {
+		self.events.onFlipDown(stack);
 	}
 
 	if (direction === fc.MOVEMENT.RIGHT) {
-		if (this.events.onFlipRight)
-			this.events.onFlipRight(stack);
+		if (self.events.onFlipRight)
+			self.events.onFlipRight(stack);
 	}
-	else if (this.events.onFlipLeft) {
-			this.events.onFlipLeft(stack);
+	else if (self.events.onFlipLeft) {
+			self.events.onFlipLeft(stack);
+	}
+
+	if (self.events.onFlipFinish) {
+		t = setTimeout(
+			function() {
+				if (self.events.onFlipFinish)
+					self.events.onFlipFinish(stack);
+			}, fc.FLIP_TIME + 1
+		);
 	}
 }
 
@@ -445,6 +456,7 @@ fc.Stack = function(container) {
 	self.swipeDist = 1;
 	self.isFaceUp = true;
 	this.cur = 0; // Index of current card
+	this.isAnimating = false;
 
 	// Check which listeners are enabled
 	self.enabled = {};
@@ -534,6 +546,7 @@ fc.Stack = function(container) {
 			flashcard.events.onFlipDown = window[front.getAttribute('fc-onFlipDown')];
 			flashcard.events.onFlipRight = window[front.getAttribute('fc-onFlipRight')];
 			flashcard.events.onFlipLeft = window[front.getAttribute('fc-onFlipLeft')];
+			flashcard.events.onFlipFinish = window[front.getAttribute('fc-onFlipFinish')];
 
 			self.push(flashcard);
 		}
@@ -648,6 +661,15 @@ fc.Stack.prototype.handleFlip = function(direction) {
 	}
 	else if (window[this.container.getAttribute('fc-onFlipLeft')]) {
 			window[this.container.getAttribute('fc-onFlipLeft')](this);
+	}
+
+	if (window[this.container.getAttribute('fc-onFlipFinish')]) {
+		t = setTimeout(
+			function() {
+				if (window[this.container.getAttribute('fc-onFlipFinish')])
+					window[this.container.getAttribute('fc-onFlipFinish')](self);
+			}, fc.FLIP_TIME + 1
+		);
 	}
 }
 
