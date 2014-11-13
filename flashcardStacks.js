@@ -157,7 +157,7 @@ var fc = {
 		if (fc.animationIsSupported) {
 			// Flip flashcard over
 			fc.Stack.prototype.flipCard = function(direction) {
-				if (!this.isAnimating) {
+				if (!this.isAnimating && !(this.container.getAttribute('fc-disableFlip') === 'true')) {
 					this.isAnimating = true;
 					var thisStack = this
 
@@ -193,7 +193,7 @@ var fc = {
 
 			// Switch to adjacent card
 			fc.Stack.prototype.switchCard = function(direction) {
-				if (!this.isAnimating) {
+				if (!this.isAnimating && !(this.container.getAttribute('fc-disableSwitch') === 'true')) {
 					this.isAnimating = true;
 					var thisStack = this;
 
@@ -238,20 +238,24 @@ var fc = {
 
 			// Flip flashcard over
 			fc.Stack.prototype.flipCard = function(direction) {
-				this.card.classList.toggle('fc_facedown');
-				this.card.classList.toggle('fc_faceup');
-				this.isFaceUp = !this.isFaceUp;
-				this.handleFlip(direction);
+				if (!(this.container.getAttribute('fc-disableFlip') === 'true')) {
+					this.card.classList.toggle('fc_facedown');
+					this.card.classList.toggle('fc_faceup');
+					this.isFaceUp = !this.isFaceUp;
+					this.handleFlip(direction);
+				}
 			} 
 
 			// Switch to adjacent card
 			fc.Stack.prototype.switchCard = function(direction) {
-				this.handleSwitch(this, fc.MOVEMENT.LEAVE);
+				if (!(this.container.getAttribute('fc-disableSwitch') === 'true')) {
+					this.handleSwitch(this, fc.MOVEMENT.LEAVE);
 
-				if (direction === fc.MOVEMENT.UP)
-					this.showNextCard();
-				else
-					this.showPrevCard();
+					if (direction === fc.MOVEMENT.UP)
+						this.showNextCard();
+					else
+						this.showPrevCard();
+				}
 			}
 		}
 
@@ -654,36 +658,37 @@ fc.Stack.prototype.resize = function() {
 
 // Handles stack flip events
 fc.Stack.prototype.handleFlip = function(direction) {
-	this.curCard().handleFlip(this, direction);
+	var self = this;
+	self.curCard().handleFlip(self, direction);
 
-	if (window[this.container.getAttribute('fc-onFlip')])
-		window[this.container.getAttribute('fc-onFlip')](this);
+	if (window[self.container.getAttribute('fc-onFlip')])
+		window[self.container.getAttribute('fc-onFlip')](self);
 
-	if (this.isFaceUp) {
-		if (window[this.container.getAttribute('fc-onFlipUp')])
-			window[this.container.getAttribute('fc-onFlipUp')](this);
+	if (self.isFaceUp) {
+		if (window[self.container.getAttribute('fc-onFlipUp')])
+			window[self.container.getAttribute('fc-onFlipUp')](self);
 	}
-	else if (window[this.container.getAttribute('fc-onFlipDown')]) {
-		this.window[this.container.getAttribute('fc-onFlipDown')](this);
+	else if (window[self.container.getAttribute('fc-onFlipDown')]) {
+		self.window[self.container.getAttribute('fc-onFlipDown')](self);
 	}
 
 	if (direction === fc.MOVEMENT.RIGHT) {
-		if (window[this.container.getAttribute('fc-onFlipRight')])
-			window[this.container.getAttribute('fc-onFlipRight')](this);
+		if (window[self.container.getAttribute('fc-onFlipRight')])
+			window[self.container.getAttribute('fc-onFlipRight')](self);
 	}
-	else if (window[this.container.getAttribute('fc-onFlipLeft')]) {
-		window[this.container.getAttribute('fc-onFlipLeft')](this);
+	else if (window[self.container.getAttribute('fc-onFlipLeft')]) {
+		window[self.container.getAttribute('fc-onFlipLeft')](self);
 	}
 
-	if (window[this.container.getAttribute('fc-onFlipFinish')]) {
+	if (window[self.container.getAttribute('fc-onFlipFinish')]) {
 		if (fc.animationIsSupported) {
 			t = setTimeout(function() {
-				if (window[this.container.getAttribute('fc-onFlipFinish')])
-					window[this.container.getAttribute('fc-onFlipFinish')](self);
+				if (window[self.container.getAttribute('fc-onFlipFinish')])
+					window[self.container.getAttribute('fc-onFlipFinish')](self);
 			}, fc.FLIP_TIME);
 		}
 		else {
-			window[this.container.getAttribute('fc-onFlipFinish')](self);
+			window[self.container.getAttribute('fc-onFlipFinish')](self);
 		}
 	}
 }
