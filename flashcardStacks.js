@@ -218,6 +218,7 @@ var fc = {
 
 							setTimeout(function() {
 								thisStack.showNextCard();
+								thisStack.handleSwitch(this, fc.MOVEMENT.ENTER);
 							}, fc.SWITCH_TIME/2);
 
 							setTimeout(function() {
@@ -231,6 +232,7 @@ var fc = {
 
 							setTimeout(function() {
 								thisStack.showPrevCard(thisStack);
+								thisStack.handleSwitch(this, fc.MOVEMENT.ENTER);
 							}, fc.SWITCH_TIME/2);
 
 							setTimeout(function() {
@@ -267,6 +269,8 @@ var fc = {
 					else {
 						this.showPrevCard();
 					}
+
+					this.handleSwitch(this, fc.MOVEMENT.ENTER);
 				}
 			}
 		}
@@ -694,8 +698,6 @@ fc.Stack.prototype.showPrevCard = function() {
 	else {
 		this.load();
 	}
-
-	this.handleSwitch(this, fc.MOVEMENT.ENTER);
 };
 
 // Switch to, and draw, the next card
@@ -708,8 +710,6 @@ fc.Stack.prototype.showNextCard = function() {
 	else {
 		this.load();
 	}
-
-	this.handleSwitch(this, fc.MOVEMENT.ENTER);
 };
 
 // Resize flashcards while maintaining aspect ratio
