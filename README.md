@@ -16,30 +16,38 @@ This is everything you need to create a stack of two flashcards that flips and s
 
 ```html
   <head>
+    <!-- Load FlashcardStacks library -->
     <script src="flashcardStacks.js" type="text/javascript"></script>
   </head>
+  
+  <!-- Run fc.init() after elements are loaded -->
   <body onload='fc.init()'>
-    <!-- Card One -->
+  
+    <!-- Add flashcard container element -->
     <div class='fc_container' fc-enableArrowkeys>
+    
+      <!-- Card One -->
       <div class='fc_content'>
-        <!-- Content for the front of card one goes here -->
+        <!-- Front Content -->
       </div>
       <div class='fc_content'>
-        <!-- Content for the back of card one goes here -->
+        <!-- Back Content -->
       </div>
       
       <!-- Card Two -->
       <div class='fc_content'>
-        <!-- Content for the front of card two goes here -->
+        <!-- Front Content -->
       </div>
       <div class='fc_content'>
-        <!-- Content for the back of card two goes here -->
+        <!-- Back Content -->
       </div>
     </div>
   </body>
 ```
 
-For more advanced features, look at the [FlashcardStacks Documentation](https://github.com/Ryan-Rutledge/FlashcardStacks/wiki)
+The [FlashcardStacks_examples](https://github.com/Ryan-Rutledge/FlashcardStacks_examples) repository contains demos of the FlashcardStacks library, and is hosted [here](http://ryan-rutledge.github.io/FlashcardStacks_examples/).
+
+For more advanced features, check out the [FlashcardStacks Documentation](https://github.com/Ryan-Rutledge/FlashcardStacks/wiki)
 
 ## About
 
