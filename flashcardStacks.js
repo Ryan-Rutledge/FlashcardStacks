@@ -523,36 +523,38 @@ fc.Stack = function(container) {
 
 	// Check which listeners are enabled
 	self.enabled = {};
-	self.enabled.tilt = container.getAttribute('fc-enableTilt') === '';
-	self.enabled.drag = container.getAttribute('fc-enableDrag') === '';
-	self.enabled.click = container.getAttribute('fc-enableClick') === '';
-	self.enabled.swipe = container.getAttribute('fc-enableSwipe') === '';
-	self.enabled.arrowkeys = container.getAttribute('fc-enableArrowkeys') === '';
+		self.enabled.tilt = container.getAttribute('fc-enableTilt') === '';
+		self.enabled.drag = container.getAttribute('fc-enableDrag') === '';
+		self.enabled.click = container.getAttribute('fc-enableClick') === '';
+		self.enabled.swipe = container.getAttribute('fc-enableSwipe') === '';
+		self.enabled.arrowkeys = container.getAttribute('fc-enableArrowkeys') === '';
 
-	// If no fc attributes are provided, enable everything
-	if (!(self.enabled.tilt || self.enabled.drag || self.enabled.click || self.enabled.swipe || self.enabled.arrowkeys)) {
-		self.enabled.tilt =
-		self.enabled.drag =
-		self.enabled.click =
-		self.enabled.swipe =
-		self.enabled.arrowkeys = true;
-	}
+		// If no fc attributes are provided, enable everything
+	if (container.getAttribute('fc-disableAll') !== '') {
+		if (!(self.enabled.tilt || self.enabled.drag || self.enabled.click || self.enabled.swipe || self.enabled.arrowkeys)) {
+			self.enabled.tilt =
+			self.enabled.drag =
+			self.enabled.click =
+			self.enabled.swipe =
+			self.enabled.arrowkeys = true;
+		}
 
-	// Add stack to appropriate arrays
-	if (self.enabled.tilt) {
-		fc.tiltStacks.push(self);
-	}
-	if (self.enabled.drag) {
-		fc.dragStacks.push(self);
-	}
-	if (self.enabled.click) {
-		fc.clickStacks.push(self);
-	}
-	if (self.enabled.swipe) {
-		fc.swipeStacks.push(self);
-	}
-	if (self.enabled.arrowkeys) {
-		fc.arrowkeyStacks.push(self);
+		// Add stack to appropriate arrays
+		if (self.enabled.tilt) {
+			fc.tiltStacks.push(self);
+		}
+		if (self.enabled.drag) {
+			fc.dragStacks.push(self);
+		}
+		if (self.enabled.click) {
+			fc.clickStacks.push(self);
+		}
+		if (self.enabled.swipe) {
+			fc.swipeStacks.push(self);
+		}
+		if (self.enabled.arrowkeys) {
+			fc.arrowkeyStacks.push(self);
+		}
 	}
 
 	self.enabled.scaling = container.getAttribute('fc-enableCanvasScale') === '';
