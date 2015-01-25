@@ -483,7 +483,14 @@ fc.FlashCard.prototype.handleSwitch = function(stack, movement) {
 			self.events.onSwitch(stack);
 		}
 
-		if (self.events.onLeave) {
+		if (fc.animationIsSupported) {
+			setTimeout(function() {
+				if (self.events.onLeave) {
+					self.events.onLeave(stack);
+				}
+			}, fc.SWITCH_TIME / 2);
+		}
+		else if (self.events.onLeave) {
 			self.events.onLeave(stack);
 		}
 	}
@@ -492,17 +499,15 @@ fc.FlashCard.prototype.handleSwitch = function(stack, movement) {
 			self.events.onEnter(stack);
 		}
 			
-		if (self.events.onSwitchFinish) {
-			if (fc.animationIsSupported) {
-				setTimeout(function() {
-					if (self.events.onSwitchFinish) {
-						self.events.onSwitchFinish(stack);
-					}
-				}, fc.SWITCH_TIME / 2);
-			}
-			else {
-				self.events.onSwitchFinish(stack);
-			}
+		if (fc.animationIsSupported) {
+			setTimeout(function() {
+				if (self.events.onSwitchFinish) {
+					self.events.onSwitchFinish(stack);
+				}
+			}, fc.SWITCH_TIME / 2);
+		}
+		else if (self.events.onSwitchFinish) {
+			self.events.onSwitchFinish(stack);
 		}
 	}
 }
@@ -791,7 +796,14 @@ fc.Stack.prototype.handleSwitch = function(movement) {
 			window[self.container.getAttribute('fc-onSwitch')](self);
 		}
 
-		if (window[self.container.getAttribute('fc-onLeave')]) {
+		if (fc.animationIsSupported) {
+			setTimeout(function() {
+				if (window[self.container.getAttribute('fc-onLeave')]) {
+					window[self.container.getAttribute('fc-onLeave')](self)
+				}
+			}, fc.SWITCH_TIME / 2);
+		}
+		else if (window[self.container.getAttribute('fc-onLeave')]) {
 			window[self.container.getAttribute('fc-onLeave')](self)
 		}
 	}
@@ -800,17 +812,15 @@ fc.Stack.prototype.handleSwitch = function(movement) {
 			window[self.container.getAttribute('fc-onEnter')](self);
 		}
 		
-		if (window[self.container.getAttribute('fc-onSwitchFinish')]) {
-			if (fc.animationIsSupported) {
-				setTimeout(function() {
-					if (window[self.container.getAttribute('fc-onSwitchFinish')]) {
-						window[self.container.getAttribute('fc-onSwitchFinish')](self);
-					}
-				}, fc.SWITCH_TIME / 2);
-			}
-			else {
-				window[self.container.getAttribute('fc-onSwitchFinish')](self);
-			}
+		if (fc.animationIsSupported) {
+			setTimeout(function() {
+				if (window[self.container.getAttribute('fc-onSwitchFinish')]) {
+					window[self.container.getAttribute('fc-onSwitchFinish')](self);
+				}
+			}, fc.SWITCH_TIME / 2);
+		}
+		else if (window[self.container.getAttribute('fc-onSwitchFinish')]) {
+			window[self.container.getAttribute('fc-onSwitchFinish')](self);
 		}
 	}
 }
