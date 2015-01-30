@@ -1,17 +1,16 @@
-#FlashcardStacks
+# FlashcardStacks
 
 
 Virtual flashcard JavaScript library
 
 
-##Synopsis
+## Synopsis
 
 FlashcardStacks is a JavaScript library that makes it easy to add 3D-animated virtual flashcards to a webpage.
 
 ## Code Example
 
-
-This is everything you need to create a stack of two flashcards that flips and switches cards when the user clicks left, right, up, or down on the keyboard:
+This is everything neccessary to create a stack of two flashcards that flips and switches cards when the user presses left, right, up, or down with the keyboard:
 
 
 ```html
@@ -21,24 +20,24 @@ This is everything you need to create a stack of two flashcards that flips and s
   </head>
   
   <!-- Run fc.init() after elements are loaded -->
-  <body onload='fc.init()'>
+  <body onload="fc.init()">
   
     <!-- Add flashcard container element -->
-    <div class='fc_container' fc-enableArrowkeys>
+    <div id="unique_id" class="fc_container" fc-enableArrowkeys>
     
       <!-- Card One -->
-      <div class='fc_content'>
+      <div class="fc_content">
         <!-- Front Content -->
       </div>
-      <div class='fc_content'>
+      <div class="fc_content">
         <!-- Back Content -->
       </div>
       
       <!-- Card Two -->
-      <div class='fc_content'>
+      <div class="fc_content">
         <!-- Front Content -->
       </div>
-      <div class='fc_content'>
+      <div class="fc_content">
         <!-- Back Content -->
       </div>
     </div>
