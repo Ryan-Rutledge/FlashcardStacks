@@ -10,7 +10,7 @@ FlashcardStacks is a JavaScript library that makes it easy to add 3D-animated vi
 
 ## Code Example
 
-This is everything neccessary to create a stack of two flashcards that flips and switches cards when the user presses left, right, up, or down with the keyboard:
+This is everything necessary to create a stack of two flashcards that flips and switches cards when the user presses left, right, up, or down with the keyboard:
 
 
 ```html
