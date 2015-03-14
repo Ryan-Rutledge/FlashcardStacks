@@ -760,7 +760,7 @@ fc.Stack.prototype.handleFlip = function(direction) {
 		}
 	}
 	else if (window[self.container.getAttribute('fc-onFlipDown')]) {
-		self.window[self.container.getAttribute('fc-onFlipDown')](self);
+		window[self.container.getAttribute('fc-onFlipDown')](self);
 	}
 
 	if (direction === fc.MOVEMENT.RIGHT) {
