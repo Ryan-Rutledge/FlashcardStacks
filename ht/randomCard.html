@@ -9,34 +9,17 @@
 
 		<script src="../flashcardStacks.js" type="text/javascript"></script>
 		<script src="../js/randomCard.js" type="text/javascript"></script>
-		<link href="../css/randomCard.css" rel="stylesheet" type="text/css" />
+
 		<link href="../css/styles.css" rel="stylesheet" type="text/css" />
+		<link href="../css/randomCard.css" rel="stylesheet" type="text/css" />
 	</head>
-	<body onload="init()">
-		<div id="onlyfc" class="fc_container" fc-margin="10%">
-			<!-- First card -->
-			<div class="fc_content first">
-				<span>Front of bottom card</span>
-			</div>
-			<div class="fc_content first">
-				<span>Back of bottom card</span>
-			</div>
-
-			<!-- Middle/Random card -->
-			<div class="fc_content fcRandom" fc-onFlipDown="showPhrase">
-				<span>The Random Card</span>
-			</div>
-			<div class="fc_content">
-				<span class="fcRandSpan">Hello</span>
-			</div>
-
-			<!-- Last card -->
-			<div class="fc_content second">
-				<span>Front of top card</span>
-			</div>
-			<div class="fc_content second">
-				<span>Back of top card</span>
-			</div>
+	<!-- Use body as fc_container -->
+	<body onload="init()" id="randomStack" class="fc_container" fc-margin="10%">
+		<div id="randomCard" class="fc_content" fc-onFlipDown="showPhrase">
+			<span>The Random Card</span>
+		</div>
+		<div class="fc_content">
+			<span id="randSpan">Hello</span>
 		</div>
 	</body>
 </html>
