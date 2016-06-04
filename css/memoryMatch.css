@@ -1,0 +1,70 @@
+html, body, body > div {
+	width: 100%; height: 100%;
+	padding: 0; margin: 0;
+}
+
+body > div, .popup > div {
+	position: absolute;
+}
+
+button {
+	cursor: pointer;
+	border: none;
+	font-size: 0.9em;
+	padding: 1ex;
+	background-color: rgb(230, 180, 0);
+	color: #FFF;
+	border-radius: 0.2ex;
+}
+button:hover {
+	background-color: rgb(238, 190, 0);
+}
+
+.fc_container {
+	height: 25%;
+	width: 25%;
+	float: left;
+}
+
+.fc_outerHolder {
+	padding: 5%;
+}
+
+.popup, .popup span, .popup button {
+	display: none;
+}
+
+.popup > div {
+	top: 0; right: 0; bottom: 0; left: 0;
+	margin: auto;
+	height: 2.5em; line-height: 2.5em;
+	text-align: center;
+	vertical-align: middle;
+	font-size: 1.5em;
+	font-weight: bold;
+}
+
+.foundmatch, .foundmatch .match, .foundmatch .score, .foundnomatch, .foundnomatch .nomatch, .foundnomatch .score, .won, .won .win {
+	display: inline;
+}
+
+.score {
+	top: 1em;
+	right: 0;
+	position: absolute;
+	text-align: center;
+	width: 100%;
+}
+
+.foundmatch > div {
+	background-color: rgba(0, 150, 0, 0.8);
+}
+
+.foundnomatch > div {
+	background-color: rgba(150, 0, 0, 0.8);
+}
+
+.won > div {
+	background-color: rgba(0, 0, 150, 0.8);
+}
+
